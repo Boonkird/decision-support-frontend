@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { SurveyResult } from '../../models/survey.component.model';
+import { SurveyResult } from '../../models/survey.model';
 
 @Component({
   selector: 'app-result',

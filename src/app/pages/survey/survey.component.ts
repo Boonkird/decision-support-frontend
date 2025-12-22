@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SurveyService } from '../../services/survey.service';
-import { Question, SurveyAnswer } from '../../models/survey.component.model';
+import { Question, SurveyAnswer } from '../../models/survey.model';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -24,7 +24,7 @@ import { FormsModule } from '@angular/forms';
         <div>
           <h3 class="text-cyber-primary text-sm uppercase tracking-widest mb-1">Current Section</h3>
           <h2 class="text-2xl font-bold text-white capitalize">
-            {{ currentQuestion?.section }} Phase
+            {{ currentQuestion.section }} Phase
           </h2>
         </div>
         <div class="text-right">

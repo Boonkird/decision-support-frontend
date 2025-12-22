@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { SurveyService } from '../services/survey.service';
-import { Question, SurveyAnswer } from '../models/survey.component.model';
+import { SurveyService } from './survey.service';
+import { Question, SurveyAnswer } from '../models/survey.model';
 
 @Component({
   selector: 'app-survey',

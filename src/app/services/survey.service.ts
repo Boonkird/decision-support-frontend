@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { Observable, of, } from 'rxjs';
 import {
   Question,
   StudentProfile,
   SurveyAnswer,
   SurveyResult,
   Track,
-} from '../models/survey.component.model';
+} from '../models/survey.model';
 
 @Injectable({
   providedIn: 'root',
@@ -185,11 +185,13 @@ export class SurveyService {
   }
 
   getQuestions(): Observable<Question[]> {
-    return of(this.questions).pipe(delay(500));
+    console.log('SurveyService: Requesting questions...'); // เพิ่ม Log
+    return of(this.questions); // ส่งของทันที ไม่ต้องรอ!
   }
 
   // --- LOGIC 2: Scoring (คำนวณคะแนนจริงตอนส่งคำตอบ) ---
   submitSurvey(answers: SurveyAnswer[]): Observable<SurveyResult[]> {
+    console.log('SurveyService: Submitting answers...');
     let trackTotals: { [key: string]: number } = { CS: 0, IT: 0, CDT: 0, CE: 0 };
     let trackCounts: { [key: string]: number } = { CS: 0, IT: 0, CDT: 0, CE: 0 };
 
@@ -229,6 +231,6 @@ export class SurveyService {
       })
       .sort((a, b) => b.percentage - a.percentage); // เรียงจากมากไปน้อย
 
-    return of(results).pipe(delay(2000)); // จำลองเวลาประมวลผล AI
+    return of(results); // จำลองเวลาประมวลผล AI
   }
 }
