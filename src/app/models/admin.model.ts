@@ -10,4 +10,10 @@ export interface AdminSession {
   school: string;
   topTrack: string;
   topScorePercent: number;
+  gender?: string;
+  age?: number;
+  province?: string;
+  studyProgram?: string;
+  levelEducation?: string;
+  durationSeconds?: number;
 }

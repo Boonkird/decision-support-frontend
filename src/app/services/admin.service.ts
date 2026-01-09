@@ -21,4 +21,8 @@ export class AdminService {
   getSessions(): Observable<AdminSession[]> {
     return this.http.get<AdminSession[]>(`${this.apiUrl}/sessions`);
   }
+
+  deleteSession(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/sessions/${id}`);
+  }
 }
