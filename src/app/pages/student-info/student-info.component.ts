@@ -32,7 +32,7 @@ import { StudentProfile } from '../../models/survey.model';
           <div class="space-y-2">
             <label class="text-cyber-primary text-sm uppercase tracking-wider">Full Name</label>
             <input type="text" [(ngModel)]="data.fullName" name="fullName" required 
-              class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white focus:border-cyber-primary focus:outline-none focus:shadow-[0_0_15px_rgba(0,243,255,0.3)] transition-all" 
+              class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white focus:border-cyber-primary focus:outline-none transition-all" 
               placeholder="กรอกชื่อ-นามสกุลของคุณ">
           </div>
 
@@ -41,28 +41,13 @@ import { StudentProfile } from '../../models/survey.model';
             <div class="flex gap-4">
               <button type="button" (click)="data.gender = 'male'"
                 class="flex-1 py-3 rounded-lg border transition-all duration-300 font-medium tracking-wide"
-                [ngClass]="{
-                  'bg-cyber-primary text-black border-cyber-primary shadow-[0_0_15px_rgba(0,243,255,0.4)] font-bold': data.gender === 'male',
-                  'bg-black/40 border-white/20 text-gray-400 hover:border-white/50 hover:text-white': data.gender !== 'male'
-                }">
-                ชาย
-              </button>
+                [ngClass]="data.gender === 'male' ? 'bg-cyber-primary text-black font-bold' : 'bg-black/40 text-gray-400 border-white/20'">ชาย</button>
               <button type="button" (click)="data.gender = 'female'"
                 class="flex-1 py-3 rounded-lg border transition-all duration-300 font-medium tracking-wide"
-                [ngClass]="{
-                  'bg-cyber-secondary text-white border-cyber-secondary shadow-[0_0_15px_rgba(188,19,254,0.4)] font-bold': data.gender === 'female',
-                  'bg-black/40 border-white/20 text-gray-400 hover:border-white/50 hover:text-white': data.gender !== 'female'
-                }">
-                หญิง
-              </button>
+                [ngClass]="data.gender === 'female' ? 'bg-cyber-secondary text-white font-bold' : 'bg-black/40 text-gray-400 border-white/20'">หญิง</button>
               <button type="button" (click)="data.gender = 'other'"
                 class="flex-1 py-3 rounded-lg border transition-all duration-300 font-medium tracking-wide"
-                [ngClass]="{
-                  'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.4)] font-bold': data.gender === 'other',
-                  'bg-black/40 border-white/20 text-gray-400 hover:border-white/50 hover:text-white': data.gender !== 'other'
-                }">
-                อื่นๆ
-              </button>
+                [ngClass]="data.gender === 'other' ? 'bg-white text-black font-bold' : 'bg-black/40 text-gray-400 border-white/20'">อื่นๆ</button>
             </div>
             <input type="text" [(ngModel)]="data.gender" name="gender" required hidden>
           </div>
@@ -74,64 +59,90 @@ import { StudentProfile } from '../../models/survey.model';
                        class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white focus:border-cyber-primary focus:outline-none transition-all" placeholder="อายุ">
              </div>
 
-             <div class="space-y-2">
+             <div class="space-y-2 relative">
                 <label class="text-cyber-primary text-sm uppercase tracking-wider">Province</label>
-                <select [(ngModel)]="data.province" name="province" required 
-                        class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white focus:border-cyber-primary focus:outline-none transition-all appearance-none">
-                  <option value="" disabled selected>เลือกจังหวัด</option>
-                  <option *ngFor="let p of provinces" [value]="p.name">{{ p.name }}</option>
-                  <option *ngIf="provinces.length === 0" value="Bangkok">กรุงเทพมหานคร</option>
-                  <option *ngIf="provinces.length === 0" value="Chiang Mai">เชียงใหม่</option>
-                </select>
+                
+                <input type="text" name="province"
+                       [(ngModel)]="data.province"
+                       (input)="onProvinceInput($event)"
+                       (focus)="onProvinceFocus()"
+                       (blur)="onProvinceBlur()" 
+                       autocomplete="off" required
+                       class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white focus:border-cyber-primary focus:outline-none transition-all"
+                       placeholder="พิมพ์จังหวัด...">
+                
+                <div *ngIf="showProvinceList && filteredProvinces.length > 0" 
+                     (mouseenter)="isOverProvinceList = true"
+                     (mouseleave)="isOverProvinceList = false"
+                     class="absolute z-50 w-full mt-1 bg-gray-900 border border-cyber-primary rounded-lg shadow-xl max-h-60 overflow-y-auto custom-scrollbar">
+                  <div *ngFor="let p of filteredProvinces"
+                       (mousedown)="selectProvince(p.name); $event.preventDefault()" 
+                       class="px-4 py-3 text-white hover:bg-cyber-primary hover:text-black cursor-pointer transition-colors border-b border-white/10 last:border-0">
+                    {{ p.name }}
+                  </div>
+                </div>
              </div>
           </div>
 
           <div class="space-y-2 relative">
             <label class="text-cyber-primary text-sm uppercase tracking-wider">School</label>
-            <input type="text" 
-                   name="school"
-                   [value]="data.school"
+            
+            <input type="text" name="school"
+                   [(ngModel)]="data.school"
                    (input)="onSchoolInput($event)"
-                   autocomplete="off"
-                   required
+                   (blur)="onSchoolBlur()"
+                   autocomplete="off" required
                    class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white focus:border-cyber-primary focus:outline-none transition-all"
-                   placeholder="พิมพ์ชื่อโรงเรียน (เช่น ยุพราช...)">
+                   placeholder="พิมพ์ชื่อโรงเรียน...">
 
             <div *ngIf="showSchoolList && filteredSchools.length > 0" 
-                 class="absolute z-50 w-full mt-1 bg-gray-900 border border-cyber-primary rounded-lg shadow-xl max-h-40 overflow-y-auto custom-scrollbar">
+                 (mouseenter)="isOverSchoolList = true"
+                 (mouseleave)="isOverSchoolList = false"
+                 class="absolute z-50 w-full mt-1 bg-gray-900 border border-cyber-primary rounded-lg shadow-xl max-h-60 overflow-y-auto custom-scrollbar">
               <div *ngFor="let school of filteredSchools"
-                   (click)="selectSchool(school.name)"
+                   (mousedown)="selectSchool(school.name); $event.preventDefault()"
                    class="px-4 py-3 text-white hover:bg-cyber-primary hover:text-black cursor-pointer transition-colors border-b border-white/10 last:border-0">
                 {{ school.name }}
               </div>
             </div>
-            <input type="text" [(ngModel)]="data.school" name="school_valid" required hidden>
+             <input type="text" [(ngModel)]="data.school" name="school_valid" required hidden>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
+          <div class="grid grid-cols-2 gap-4">            
+            <div class="space-y-2 relative">
               <label class="text-cyber-primary text-sm uppercase tracking-wider">Level</label>
-              <select [(ngModel)]="data.levelEducation" name="levelEducation" required 
-                class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white focus:border-cyber-primary focus:outline-none transition-all appearance-none">
-                <option value="" disabled selected>ระดับชั้น</option>
-                <option value="m4">ม.4</option>
-                <option value="m5">ม.5</option>
-                <option value="m6">ม.6</option>
-                <option value="voc">ปวช.</option>
-              </select>
+              <div class="relative">
+                <select [(ngModel)]="data.levelEducation" name="levelEducation" required 
+                  class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white focus:border-cyber-primary focus:outline-none transition-all appearance-none cursor-pointer">
+                  <option value="" disabled selected class="bg-gray-900 text-gray-400">ระดับชั้น</option>
+                  <option value="m3" class="bg-gray-900 text-white hover:bg-cyber-primary">ม.3</option>
+                  <option value="m4" class="bg-gray-900 text-white">ม.4</option>
+                  <option value="m5" class="bg-gray-900 text-white">ม.5</option>
+                  <option value="m6" class="bg-gray-900 text-white">ม.6</option>
+                  <option value="voc" class="bg-gray-900 text-white">ปวช./ปวส.</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-cyber-primary">
+                  <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+                </div>
+              </div>
             </div>
 
-            <div class="space-y-2">
+            <div class="space-y-2 relative">
               <label class="text-cyber-primary text-sm uppercase tracking-wider">Program</label>
-              <select [(ngModel)]="data.studyProgram" name="studyProgram" required 
-                      class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white focus:border-cyber-primary focus:outline-none transition-all appearance-none">
-                <option value="" disabled selected>สายการเรียน</option>
-                <option value="sci-math">วิทย์-คณิต</option>
-                <option value="arts-math">ศิลป์-คำนวณ</option>
-                <option value="arts-lang">ศิลป์-ภาษา</option>
-                <option value="vocational">สายอาชีพ</option>
-                <option value="other">อื่นๆ</option>
-              </select>
+              <div class="relative">
+                <select [(ngModel)]="data.studyProgram" name="studyProgram" required 
+                        class="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white focus:border-cyber-primary focus:outline-none transition-all appearance-none cursor-pointer">
+                  <option value="" disabled selected class="bg-gray-900 text-gray-400">สายการเรียน</option>
+                  <option value="sci-math" class="bg-gray-900 text-white">วิทย์-คณิต</option>
+                  <option value="arts-math" class="bg-gray-900 text-white">ศิลป์-คำนวณ</option>
+                  <option value="arts-lang" class="bg-gray-900 text-white">ศิลป์-ภาษา</option>
+                  <option value="vocational" class="bg-gray-900 text-white">สายอาชีพ</option>
+                  <option value="other" class="bg-gray-900 text-white">อื่นๆ</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-cyber-primary">
+                  <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -142,63 +153,107 @@ import { StudentProfile } from '../../models/survey.model';
 
         </form>
       </div>
-    </div>
+      
+      </div>
   `
 })
 export class StudentInfoComponent implements OnInit {
   data: StudentProfile = { 
-    fullName: '', 
-    school: '', 
-    levelEducation: '', 
-    gender: '',
-    province: '', 
-    age: undefined, 
-    studyProgram: ''
+    fullName: '', school: '', levelEducation: '', gender: '',
+    province: '', age: undefined, studyProgram: ''
   };
 
-  provinces: any[] = [];
+  allProvinces: any[] = [];
+  filteredProvinces: any[] = [];
+  showProvinceList = false;
+  isOverProvinceList = false; // ✅ ตัวเช็คว่าเมาส์อยู่บนลิสต์ไหม
+
   filteredSchools: any[] = [];
   showSchoolList = false;
+  isOverSchoolList = false; // ✅ ตัวเช็คว่าเมาส์อยู่บนลิสต์ไหม
 
   constructor(private router: Router, private surveyService: SurveyService) {}
 
   ngOnInit() {
-    // โหลดจังหวัด (ถ้า Backend เสร็จแล้วจะดึงได้ ถ้ายังไม่เสร็จมันจะเงียบๆ ไป)
     this.surveyService.getProvinces().subscribe({
-        next: (res) => this.provinces = res,
-        error: () => console.log('Backend province API not ready yet')
+        next: (res) => {
+            this.allProvinces = res;
+            this.filteredProvinces = res.slice(0, 20); // โหลด 20 ตัวแรก
+        },
+        error: () => console.log('Backend not ready')
     });
   }
 
+  // --- Province Logic ---
+  onProvinceInput(event: any) {
+    const query = event.target.value.toLowerCase();
+    this.showProvinceList = true;
+    if (!query) {
+        this.filteredProvinces = this.allProvinces.slice(0, 20);
+    } else {
+        this.filteredProvinces = this.allProvinces
+            .filter(p => p.name.toLowerCase().includes(query))
+            .slice(0, 20); // ลิมิต 20
+    }
+  }
+
+  onProvinceFocus() {
+    this.showProvinceList = true;
+    if (!this.data.province) {
+        this.filteredProvinces = this.allProvinces.slice(0, 20);
+    }
+  }
+
+  // ✅ เมื่อ Input เสียโฟกัส (กดที่อื่น) ให้เช็คก่อนว่าเมาส์กำลังกด Scrollbar หรือเปล่า
+  onProvinceBlur() {
+    if (!this.isOverProvinceList) {
+        this.showProvinceList = false;
+    }
+  }
+
+  selectProvince(name: string) {
+    this.data.province = name;
+    this.showProvinceList = false;
+    this.isOverProvinceList = false;
+  }
+
+  // --- School Logic ---
   onSchoolInput(event: any) {
     const query = event.target.value;
-    this.data.school = query; // เก็บค่าที่พิมพ์เผื่อไว้
-
+    this.showSchoolList = true;
     if (query.length >= 2) {
       this.surveyService.searchSchools(query).subscribe({
         next: (res) => {
-          this.filteredSchools = res;
-          this.showSchoolList = true;
+          this.filteredSchools = res.slice(0, 20); // ลิมิต 20
         },
         error: () => {
-             // Mock data สำหรับเทสถ้า Backend ยังไม่พร้อม
+             // Mock data ก็ slice
              const mockSchools = [
                  { name: 'โรงเรียนยุพราชวิทยาลัย' },
                  { name: 'โรงเรียนเตรียมอุดมศึกษา' },
                  { name: 'โรงเรียนสวนกุหลาบวิทยาลัย' }
              ];
-             this.filteredSchools = mockSchools.filter(s => s.name.includes(query));
-             this.showSchoolList = true;
+             this.filteredSchools = mockSchools
+                .filter(s => s.name.includes(query))
+                .slice(0, 20);
         }
       });
     } else {
-      this.showSchoolList = false;
+      this.filteredSchools = [];
     }
   }
 
-  selectSchool(schoolName: string) {
-    this.data.school = schoolName;
+  onSchoolBlur() {
+    // ✅ ถ้าเมาส์ไม่อยู่บนลิสต์ (แปลว่ากดที่อื่น) ให้ปิดลิสต์
+    if (!this.isOverSchoolList) {
+        this.showSchoolList = false;
+    }
+  }
+
+  selectSchool(name: string) {
+    this.data.school = name;
     this.showSchoolList = false;
+    this.isOverSchoolList = false;
   }
 
   onSubmit(form: any) {
