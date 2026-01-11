@@ -13,6 +13,8 @@ export class AdminService {
   private trackUrl = 'http://127.0.0.1:8080/api/tracks';
   private schoolUrl = 'http://127.0.0.1:8080/api/schools';
   private questionUrl = 'http://127.0.0.1:8080/api/questions';
+  private programUrl = 'http://127.0.0.1:8080/api/programs';
+  private levelUrl = 'http://127.0.0.1:8080/api/levels';
 
   constructor(private http: HttpClient) {}
 
@@ -79,5 +81,39 @@ export class AdminService {
 
   deleteQuestion(id: number): Observable<any> {
     return this.http.delete(`${this.questionUrl}/${id}`);
+  }
+
+  //----------------------------------------------------------------
+  getAllPrograms(): Observable<any[]> {
+    return this.http.get<any[]>(this.programUrl);
+  }
+
+  createProgram(data: any): Observable<any> {
+    return this.http.post(this.programUrl, data);
+  }
+
+  updateProgram(id: number, data: any): Observable<any> { 
+    return this.http.put(`${this.programUrl}/${id}`, data); 
+  }
+
+  deleteProgram(id: number): Observable<any> {
+    return this.http.delete(`${this.programUrl}/${id}`);
+  }
+
+  //----------------------------------------------------------------
+  getAllLevels(): Observable<any[]> { 
+    return this.http.get<any[]>(this.levelUrl); 
+  }
+
+  createLevel(data: any): Observable<any> { 
+    return this.http.post(this.levelUrl, data); 
+  }
+  
+  updateLevel(id: number, data: any): Observable<any> { 
+    return this.http.put(`${this.levelUrl}/${id}`, data); 
+  }
+
+  deleteLevel(id: number): Observable<any> { 
+    return this.http.delete(`${this.levelUrl}/${id}`); 
   }
 }
