@@ -7,11 +7,14 @@ export interface Track {
 }
 
 export interface Question {
-  questionId: number;     // Backend ใช้ questionId (ไม่ใช่ id)
-  questionText: string;   // Backend ใช้ questionText (ไม่ใช่ text)
-  sectionId?: number;
-  sectionTitle?: string;  // Backend ส่ง sectionTitle มาให้ด้วย
-  // trackWeights ลบออกได้เลย เพราะ Frontend ไม่ต้องคำนวณเองแล้ว
+  questionId: number;
+  sectionId: number;
+  sectionTitle: string;
+  questionOrder: number;
+  questionText: string;
+  scaleMin: number;
+  scaleMax: number;
+  isReverse: boolean;
 }
 
 export interface StudentProfile {
@@ -36,7 +39,14 @@ export interface SurveySubmitRequest {
 
 export interface SurveyResult {
   trackCode: string;
-  trackName: string;
-  score: number;
+  trackNameTh: string;
+  trackNameEn: string;
+  description: string;
   percentage: number;
+}
+
+export interface School {
+  id: number;
+  name: string;
+  province: string;
 }

@@ -17,3 +17,10 @@ export interface AdminSession {
   levelEducation?: string;
   durationSeconds?: number;
 }
+
+export interface AdminQuestion {
+  questionId: number;
+  questionOrder: number;
+  questionText: string;
+  weights: { [key: string]: number }; // เก็บน้ำหนักเป็น Object เช่น { "CS": 5, "IT": 2 }
+}

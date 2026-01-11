@@ -174,7 +174,21 @@ import { StudentProfile } from '../../models/survey.model';
         </form>
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #00f3ff; }
+
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  `]
 })
 export class StudentInfoComponent implements OnInit {
   data: StudentProfile = { 

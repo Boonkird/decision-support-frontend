@@ -1,97 +1,216 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChildren, QueryList, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // ✅ ต้อง Import forms เพื่อใช้ช่องค้นหา
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2'; // ✅ Import Swal
 import { AdminService } from '../../../services/admin.service';
-import { AdminSession, DashboardStats } from '../../../models/admin.model';
+import { AdminSession } from '../../../models/admin.model';
+import Chart from 'chart.js/auto';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule], // ✅ ใส่ FormsModule ด้วย
+  imports: [CommonModule, FormsModule],
   template: `
-    <div class="min-h-screen bg-cyber-bg p-6 md:p-8">
+    <div class="min-h-screen bg-cyber-bg p-4 md:p-6 text-white font-sans">
       
-      <div class="flex justify-between items-center mb-8">
+      <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 border-b border-white/10 pb-4">
         <div>
-          <h1 class="text-3xl font-bold text-white tracking-wider">ADMIN COMMAND CENTER</h1>
-          <p class="text-cyber-primary text-sm uppercase tracking-[0.2em]">System Status: Online</p>
+          <h1 class="text-2xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyber-primary to-cyber-secondary">
+            STUDENT DATA CENTER
+          </h1>
+          <p class="text-gray-400 text-xs uppercase tracking-[0.2em] mt-1">
+            Total Records: {{ filteredSessions.length }}
+          </p>
         </div>
-        <button (click)="logout()" class="px-6 py-2 border border-red-500/50 text-red-500 rounded hover:bg-red-500 hover:text-white transition-all">
-          LOGOUT
-        </button>
+        <div class="flex gap-2">
+          <button (click)="toggleCharts()" 
+                  class="flex items-center gap-2 px-4 py-2 rounded transition-all text-xs font-bold tracking-wider border"
+                  [ngClass]="showCharts ? 'bg-cyber-primary text-black border-cyber-primary' : 'bg-transparent text-cyber-primary border-cyber-primary hover:bg-cyber-primary/10'">
+            <span class="text-lg">{{ showCharts ? '✕' : '📊' }}</span>
+            {{ showCharts ? 'HIDE ANALYTICS' : 'SHOW ANALYTICS' }}
+          </button>
+          <button (click)="exportToCSV()" class="px-4 py-2 bg-green-600/20 border border-green-500/50 text-green-500 rounded hover:bg-green-600 hover:text-white transition-all text-xs font-bold tracking-wider flex items-center gap-2">
+            📥 EXPORT CSV
+          </button>
+          <button (click)="goToManage()" class="px-4 py-2 border border-blue-500/50 text-blue-400 rounded hover:bg-blue-500 hover:text-white transition-all text-xs font-bold tracking-wider flex items-center gap-2">
+            ⚙️ SYSTEM CONFIG
+          </button>         
+          <button (click)="resetFilters()" class="px-4 py-2 border border-white/30 text-white rounded hover:bg-white/10 transition-all text-xs font-bold tracking-wider">
+            ↺ RESET
+          </button>
+          <button (click)="logout()" class="px-4 py-2 border border-red-500/50 text-red-500 rounded hover:bg-red-500 hover:text-white transition-all text-xs font-bold tracking-wider">
+            LOGOUT
+          </button>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-gray-900/80 border border-white/10 p-4 rounded-xl backdrop-blur-sm">
-          <h3 class="text-gray-400 text-xs uppercase mb-1">Total Users</h3>
-          <div class="text-3xl font-bold text-white">{{ sessions.length }}</div>
-        </div>
-        <div class="bg-gray-900/80 border border-white/10 p-4 rounded-xl backdrop-blur-sm">
-          <h3 class="text-gray-400 text-xs uppercase mb-1">Avg Score</h3>
-          <div class="text-3xl font-bold text-cyber-primary">{{ getAvgScore() | number:'1.0-1' }}%</div>
-        </div>
-        <div class="bg-gray-900/80 border border-white/10 p-4 rounded-xl backdrop-blur-sm">
-          <h3 class="text-gray-400 text-xs uppercase mb-1">Top Track</h3>
-          <div class="text-3xl font-bold text-cyber-secondary">{{ getTopTrack() }}</div>
-        </div>
-        <div class="bg-gray-900/80 border border-white/10 p-4 rounded-xl backdrop-blur-sm">
-          <h3 class="text-gray-400 text-xs uppercase mb-1">Avg Time</h3>
-          <div class="text-3xl font-bold text-white">{{ getAvgTime() }} <span class="text-xs text-gray-500">mins</span></div>
-        </div>
-      </div>
-
-      <div class="bg-gray-900/80 border border-white/10 rounded-xl overflow-hidden backdrop-blur-sm">
+      <div class="bg-gray-900/60 border border-cyber-primary/30 p-4 rounded-xl mb-6 backdrop-blur-md shadow-lg">
+        <h3 class="text-cyber-primary text-xs uppercase tracking-widest mb-3 font-bold flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-cyber-primary animate-pulse"></span> Data Filters
+        </h3>
         
-        <div class="p-6 border-b border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <h3 class="text-white font-bold tracking-wider">USER DATABASE</h3>
-          
-          <div class="flex gap-4 w-full md:w-auto">
-            <input type="text" [(ngModel)]="searchTerm" (input)="filterData()" 
-                   placeholder="Search name, school, province..." 
-                   class="bg-black/50 border border-white/20 rounded px-4 py-2 text-white focus:border-cyber-primary outline-none w-full md:w-64">
-            
-            <button (click)="loadData()" class="px-4 py-2 border border-cyber-primary text-cyber-primary rounded hover:bg-cyber-primary hover:text-black transition-all">
-              ↻ REFRESH
-            </button>
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
+          <div>
+            <label class="text-gray-500 text-[10px] uppercase mb-1 block">Time Period</label>
+            <select [(ngModel)]="filters.period" (change)="applyFilters()" 
+                    class="w-full bg-black/50 border border-white/20 rounded px-2 py-2 text-sm text-white focus:border-cyber-primary outline-none">
+              <option value="all">All Time</option>
+              <option value="year">This Year</option>
+              <option value="month">This Month</option>
+              <option value="week">This Week</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-gray-500 text-[10px] uppercase mb-1 block">Track</label>
+            <select [(ngModel)]="filters.track" (change)="applyFilters()" 
+                    class="w-full bg-black/50 border border-white/20 rounded px-2 py-2 text-sm text-white focus:border-cyber-primary outline-none">
+              <option value="">All Tracks</option>
+              <option *ngFor="let t of options.tracks" [value]="t">{{ t }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-gray-500 text-[10px] uppercase mb-1 block">Gender</label>
+            <select [(ngModel)]="filters.gender" (change)="applyFilters()" 
+                    class="w-full bg-black/50 border border-white/20 rounded px-2 py-2 text-sm text-white focus:border-cyber-primary outline-none">
+              <option value="">All</option>
+              <option *ngFor="let g of options.genders" [value]="g">{{ g }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-gray-500 text-[10px] uppercase mb-1 block">Age</label>
+            <select [(ngModel)]="filters.age" (change)="applyFilters()" 
+                    class="w-full bg-black/50 border border-white/20 rounded px-2 py-2 text-sm text-white focus:border-cyber-primary outline-none">
+              <option value="">All</option>
+              <option *ngFor="let a of options.ages" [value]="a">{{ a }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-gray-500 text-[10px] uppercase mb-1 block">Province</label>
+            <select [(ngModel)]="filters.province" (change)="applyFilters()" 
+                    class="w-full bg-black/50 border border-white/20 rounded px-2 py-2 text-sm text-white focus:border-cyber-primary outline-none">
+              <option value="">All</option>
+              <option *ngFor="let p of options.provinces" [value]="p">{{ p }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-gray-500 text-[10px] uppercase mb-1 block">School</label>
+            <input type="text" [(ngModel)]="filters.school" (input)="applyFilters()" 
+                   placeholder="Search..."
+                   class="w-full bg-black/50 border border-white/20 rounded px-2 py-2 text-sm text-white focus:border-cyber-primary outline-none">
           </div>
         </div>
+      </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead class="bg-white/5 text-gray-400 text-xs uppercase">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-gray-900/80 border border-white/10 p-4 rounded-xl">
+          <h3 class="text-gray-400 text-[10px] uppercase mb-1">Total Found</h3>
+          <div class="text-3xl font-bold text-white">{{ filteredSessions.length }}</div>
+        </div>
+        <div class="bg-gray-900/80 border border-white/10 p-4 rounded-xl">
+          <h3 class="text-gray-400 text-[10px] uppercase mb-1">Most Popular</h3>
+          <div class="text-3xl font-bold text-cyber-secondary truncate">{{ kpi.topTrack }}</div>
+        </div>
+        <div class="bg-gray-900/80 border border-white/10 p-4 rounded-xl">
+          <h3 class="text-gray-400 text-[10px] uppercase mb-1">Avg Score</h3>
+          <div class="text-3xl font-bold text-cyber-primary">{{ kpi.avgScore }}%</div>
+        </div>
+        <div class="bg-gray-900/80 border border-white/10 p-4 rounded-xl">
+          <h3 class="text-gray-400 text-[10px] uppercase mb-1">Avg Age</h3>
+          <div class="text-3xl font-bold text-white">{{ kpi.avgAge }}</div>
+        </div>
+      </div>
+
+      <div *ngIf="showCharts" class="mb-8 animate-fadeIn border-t border-b border-white/10 py-6 bg-black/20">
+        <h2 class="text-xl font-bold text-white mb-4 pl-2 border-l-4 border-cyber-primary">Visual Analytics</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
+          
+          <div class="bg-gray-900/80 border border-white/10 p-3 rounded-xl lg:col-span-3">
+            <h3 class="text-xs uppercase text-gray-400 mb-2">Track Distribution</h3>
+            <div class="relative h-40 w-full"><canvas #trackChart></canvas></div>
+          </div>
+          
+          <div class="bg-gray-900/80 border border-white/10 p-3 rounded-xl lg:col-span-3">
+            <h3 class="text-xs uppercase text-gray-400 mb-2">Gender Ratio</h3>
+            <div class="relative h-40 w-full flex justify-center"><canvas #genderChart></canvas></div>
+          </div>
+          
+          <div class="bg-gray-900/80 border border-white/10 p-3 rounded-xl lg:col-span-3">
+            <h3 class="text-xs uppercase text-gray-400 mb-2">Age Groups</h3>
+            <div class="relative h-40 w-full"><canvas #ageChart></canvas></div>
+          </div>
+
+          <div class="bg-gray-900/80 border border-white/10 p-3 rounded-xl lg:col-span-3">
+            <h3 class="text-xs uppercase text-gray-400 mb-2">Selections by Gender</h3>
+            <div class="relative h-40 w-full"><canvas #genderTrackChart></canvas></div>
+          </div>
+
+          <div class="bg-gray-900/80 border border-white/10 p-3 rounded-xl lg:col-span-8">
+            <h3 class="text-xs uppercase text-gray-400 mb-2">User Growth Trend ({{ filters.period | titlecase }})</h3>
+            <div class="relative h-48 w-full"><canvas #trendChart></canvas></div>
+          </div>
+
+          <div class="bg-gray-900/80 border border-white/10 p-3 rounded-xl lg:col-span-4">
+            <h3 class="text-xs uppercase text-gray-400 mb-2">Top Provinces</h3>
+            <div class="relative h-48 w-full"><canvas #provinceChart></canvas></div>
+          </div>
+
+        </div>
+      </div>
+      
+      <div class="bg-gray-900/80 border border-white/10 rounded-xl overflow-hidden backdrop-blur-sm shadow-2xl">
+        <div class="p-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
+          <h3 class="text-white font-bold text-sm tracking-wider flex items-center gap-2">
+            📄 DETAILED RECORDS
+          </h3>
+          <span class="text-xs text-gray-400">Scroll to view more</span>
+        </div>
+        <div class="overflow-x-auto max-h-[600px] custom-scrollbar">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-gray-800 text-gray-400 sticky top-0 z-10 shadow-md">
               <tr>
-                <th class="p-4 cursor-pointer hover:text-white" (click)="sort('createdAt')">Date ↕</th>
-                <th class="p-4 cursor-pointer hover:text-white" (click)="sort('studentName')">Name ↕</th>
-                <th class="p-4 cursor-pointer hover:text-white" (click)="sort('province')">Province ↕</th>
-                <th class="p-4 cursor-pointer hover:text-white" (click)="sort('school')">School ↕</th>
-                <th class="p-4 cursor-pointer hover:text-white" (click)="sort('age')">Age ↕</th>
-                <th class="p-4 text-center cursor-pointer hover:text-white" (click)="sort('topTrack')">Result ↕</th>
-                <th class="p-4 text-center cursor-pointer hover:text-white" (click)="sort('topScorePercent')">Score ↕</th>
-                <th class="p-4 text-center">Action</th>
+                <th class="p-4 font-semibold uppercase tracking-wider">Date/Time</th>
+                <th class="p-4 font-semibold uppercase tracking-wider">Name</th>
+                <th class="p-4 font-semibold uppercase tracking-wider">Gender</th>
+                <th class="p-4 font-semibold uppercase tracking-wider">Age</th>
+                <th class="p-4 font-semibold uppercase tracking-wider">Province</th>
+                <th class="p-4 font-semibold uppercase tracking-wider">School</th>
+                <th class="p-4 text-center font-semibold uppercase tracking-wider">Result</th>
+                <th class="p-4 text-center font-semibold uppercase tracking-wider">Score</th>
+                <th class="p-4 text-center font-semibold uppercase tracking-wider">Action</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-white/5 text-sm">
-              <tr *ngFor="let session of filteredSessions" class="hover:bg-white/5 transition-colors">
-                <td class="p-4 text-gray-400 whitespace-nowrap">{{ session.createdAt | date:'short' }}</td>
-                <td class="p-4 text-white font-medium">{{ session.studentName }}</td>
-                <td class="p-4 text-gray-300">{{ session.province || '-' }}</td>
-                <td class="p-4 text-gray-300">{{ session.school }}</td>
-                <td class="p-4 text-gray-300">{{ session.age || '-' }}</td>
+            <tbody class="divide-y divide-white/5">
+              <tr *ngFor="let s of filteredSessions" class="hover:bg-white/5 transition-colors group">
+                <td class="p-4 text-gray-400 whitespace-nowrap font-mono">{{ s.createdAt | date:'dd/MM/yy HH:mm' }}</td>
+                <td class="p-4 font-medium text-white text-sm">{{ s.studentName }}</td>
+                <td class="p-4 text-gray-300">{{ s.gender || '-' }}</td>
+                <td class="p-4 text-gray-300">{{ s.age || '-' }}</td>
+                <td class="p-4 text-gray-300">{{ s.province || '-' }}</td>
+                <td class="p-4 text-gray-400 truncate max-w-[200px]" title="{{s.school}}">{{ s.school }}</td>
                 <td class="p-4 text-center">
-                  <span class="inline-block px-2 py-1 bg-cyber-primary/20 text-cyber-primary rounded text-xs font-bold border border-cyber-primary/30">
-                    {{ session.topTrack }}
+                  <span class="inline-block px-3 py-1 rounded bg-cyber-primary/10 text-cyber-primary font-bold border border-cyber-primary/30 group-hover:bg-cyber-primary group-hover:text-black transition-colors">
+                    {{ s.topTrack }}
                   </span>
                 </td>
-                <td class="p-4 text-center text-white">{{ session.topScorePercent | number:'1.0-0' }}%</td>
+                <td class="p-4 text-center font-mono text-white">{{ s.topScorePercent | number:'1.0-0' }}%</td>
                 <td class="p-4 text-center">
-                  <button (click)="deleteSession(session.sessionId)" class="text-red-500 hover:text-red-400 hover:scale-110 transition-transform">
-                    🗑
-                  </button>
+                   <button (click)="deleteSession(s.sessionId, s.studentName)" class="bg-red-500/20 text-red-500 border border-red-500/50 p-2 rounded-full hover:bg-red-600 hover:text-white transition-all shadow-[0_0_10px_rgba(239,68,68,0.4)]" title="DELETE">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                      </svg>
+                   </button>
                 </td>
               </tr>
-              <tr *ngIf="filteredSessions.length === 0">
-                <td colspan="8" class="p-8 text-center text-gray-500">No records found.</td>
+               <tr *ngIf="filteredSessions.length === 0">
+                 <td colspan="9" class="p-12 text-center text-gray-500 border-t border-white/5">
+                    <div class="flex flex-col items-center gap-2">
+                        <span class="text-2xl">🔍</span>
+                        <span>No data matches the current filters.</span>
+                        <button (click)="resetFilters()" class="text-cyber-primary underline hover:text-white mt-2">Clear Filters</button>
+                    </div>
+                 </td>
               </tr>
             </tbody>
           </table>
@@ -99,15 +218,42 @@ import { AdminSession, DashboardStats } from '../../../models/admin.model';
       </div>
 
     </div>
-  `
+  `,
+  styles: [`
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+    .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  `]
 })
-export class DashboardComponent implements OnInit {
-  sessions: AdminSession[] = []; // ข้อมูลดิบทั้งหมด
-  filteredSessions: AdminSession[] = []; // ข้อมูลที่ผ่านการกรอง/เรียงแล้ว
-  
-  searchTerm: string = '';
-  sortColumn: string = 'createdAt';
-  sortDirection: 'asc' | 'desc' = 'desc';
+export class DashboardComponent implements OnInit, AfterViewInit {
+  @ViewChildren('trackChart, genderChart, ageChart, provinceChart, genderTrackChart, trendChart') 
+  chartRefs!: QueryList<ElementRef>;
+
+  sessions: AdminSession[] = [];
+  filteredSessions: AdminSession[] = [];
+  charts: any[] = [];
+  showCharts = false;
+
+  options = {
+    genders: [] as string[],
+    ages: [] as number[],
+    provinces: [] as string[],
+    tracks: [] as string[]
+  };
+
+  filters = {
+    period: 'all',
+    track: '',
+    gender: '',
+    age: '',
+    province: '',
+    school: ''
+  };
+
+  kpi = { topTrack: '-', avgScore: '0', avgAge: '0' };
 
   constructor(private adminService: AdminService, private router: Router) {}
 
@@ -116,100 +262,304 @@ export class DashboardComponent implements OnInit {
     this.loadData();
   }
 
+  ngAfterViewInit() {}
+
   checkAuth() {
-    if (!localStorage.getItem('isAdmin')) {
-      this.router.navigate(['/admin/login']);
-    }
+    if (!localStorage.getItem('isAdmin')) this.router.navigate(['/admin/login']);
   }
 
-  loadData() {
-    this.adminService.getSessions().subscribe({
-      next: (res) => {
-        this.sessions = res;
-        this.filterData(); // โหลดเสร็จสั่งกรอง 1 รอบ
-      },
-      error: (err) => console.error(err)
-    });
-  }
-
-  // --- Logic การลบ ---
-  deleteSession(id: number) {
-    if(confirm('Are you sure you want to delete this record?')) {
-      this.adminService.deleteSession(id).subscribe({
-        next: () => {
-          // ลบจาก Array ใน Frontend ด้วย ไม่ต้องโหลดใหม่
-          this.sessions = this.sessions.filter(s => s.sessionId !== id);
-          this.filterData();
-        },
-        error: (err) => alert('Delete failed')
-      });
-    }
-  }
-
-  // --- Logic การค้นหาและเรียงลำดับ ---
-  filterData() {
-    let data = [...this.sessions];
-
-    // 1. Search Filter
-    if (this.searchTerm) {
-      const term = this.searchTerm.toLowerCase();
-      data = data.filter(s => 
-        s.studentName?.toLowerCase().includes(term) ||
-        s.school?.toLowerCase().includes(term) ||
-        s.province?.toLowerCase().includes(term)
-      );
-    }
-
-    // 2. Sorting
-    data.sort((a: any, b: any) => {
-      let valA = a[this.sortColumn];
-      let valB = b[this.sortColumn];
-
-      // Handle nulls
-      if (valA == null) valA = '';
-      if (valB == null) valB = '';
-
-      if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
-      if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
-
-    this.filteredSessions = data;
-  }
-
-  sort(column: string) {
-    // สลับทิศทางถ้ากดคอลัมน์เดิม
-    if (this.sortColumn === column) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-      this.sortColumn = column;
-      this.sortDirection = 'asc';
-    }
-    this.filterData();
-  }
+  goToManage() { 
+    this.router.navigate(['/admin/manage']); }
 
   logout() {
     localStorage.removeItem('isAdmin');
     this.router.navigate(['/admin/login']);
   }
 
-  // --- Helper Functions สำหรับคำนวณ Stats ---
-  getAvgScore() {
-    if (!this.sessions.length) return 0;
-    return this.sessions.reduce((sum, s) => sum + s.topScorePercent, 0) / this.sessions.length;
+  loadData() {
+    this.adminService.getSessions().subscribe({
+      next: (res) => {
+        this.sessions = res;
+        this.extractFilterOptions();
+        this.applyFilters();
+      },
+      error: (err) => console.error(err)
+    });
   }
 
-  getTopTrack() {
-    if (!this.sessions.length) return '-';
+  toggleCharts() {
+    this.showCharts = !this.showCharts;
+    if (this.showCharts) {
+      setTimeout(() => this.initCharts(), 50);
+    }
+  }
+
+  // ✅ Safe Delete แบบพิมพ์ยืนยัน
+  deleteSession(id: number, name: string) {
+    Swal.fire({
+      title: '🚨 DELETE RECORD?',
+      html: `
+        You are about to delete survey data for: <br/>
+        <b style="color: #ef4444">${name}</b><br/><br/>
+        This action cannot be undone.<br/>
+        Type <b>DELETE</b> to confirm.
+      `,
+      input: 'text',
+      inputPlaceholder: 'Type DELETE',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: '#d33',
+      background: '#1a1a1a',
+      color: '#fff',
+      customClass: { input: 'bg-gray-800 text-white border-gray-600' },
+      preConfirm: (inputValue) => {
+        if (inputValue !== 'DELETE') {
+          Swal.showValidationMessage('Type DELETE to confirm!');
+        }
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.adminService.deleteSession(id).subscribe({
+          next: () => {
+            this.sessions = this.sessions.filter(s => s.sessionId !== id);
+            this.applyFilters();
+            Swal.fire({ title: 'Deleted!', icon: 'success', timer: 1500, showConfirmButton: false, background: '#1a1a1a', color: '#fff' });
+          },
+          error: () => Swal.fire('Error', 'Failed to delete record.', 'error')
+        });
+      }
+    });
+  }
+
+  extractFilterOptions() {
+    this.options.genders = [...new Set(this.sessions.map(s => s.gender).filter(Boolean) as string[])];
+    this.options.ages = [...new Set(this.sessions.map(s => s.age).filter(Boolean) as number[])].sort((a,b) => a-b);
+    this.options.provinces = [...new Set(this.sessions.map(s => s.province).filter(Boolean) as string[])].sort();
+    this.options.tracks = [...new Set(this.sessions.map(s => s.topTrack).filter(Boolean) as string[])].sort();
+  }
+
+  applyFilters() {
+    const now = new Date();
+    const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate() - 7);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+    this.filteredSessions = this.sessions.filter(s => {
+      // Time Filter
+      const date = new Date(s.createdAt);
+      let matchTime = true;
+      if (this.filters.period === 'year') matchTime = date >= startOfYear;
+      else if (this.filters.period === 'month') matchTime = date >= startOfMonth;
+      else if (this.filters.period === 'week') matchTime = date >= startOfWeek;
+
+      // Attribute Filters
+      const matchTrack = !this.filters.track || s.topTrack === this.filters.track;
+      const matchGender = !this.filters.gender || s.gender === this.filters.gender;
+      const matchAge = !this.filters.age || s.age === Number(this.filters.age);
+      const matchProvince = !this.filters.province || s.province === this.filters.province;
+      const matchSchool = !this.filters.school || (s.school && s.school.toLowerCase().includes(this.filters.school.toLowerCase()));
+      
+      return matchTime && matchTrack && matchGender && matchAge && matchProvince && matchSchool;
+    });
+
+    this.calculateKPI();
+    
+    if (this.showCharts) {
+        setTimeout(() => this.initCharts(), 50);
+    }
+  }
+
+  resetFilters() {
+    this.filters = { period: 'all', track: '', gender: '', age: '', province: '', school: '' };
+    this.applyFilters();
+  }
+
+  calculateKPI() {
+    if (this.filteredSessions.length === 0) {
+      this.kpi = { topTrack: '-', avgScore: '0', avgAge: '0' };
+      return;
+    }
     const counts: any = {};
-    this.sessions.forEach(s => counts[s.topTrack] = (counts[s.topTrack] || 0) + 1);
-    return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+    this.filteredSessions.forEach(s => counts[s.topTrack] = (counts[s.topTrack] || 0) + 1);
+    const sortedTracks = Object.keys(counts).sort((a,b) => counts[b] - counts[a]);
+    this.kpi.topTrack = sortedTracks.length > 0 ? sortedTracks[0] : '-';
+
+    const totalScore = this.filteredSessions.reduce((sum, s) => sum + (s.topScorePercent || 0), 0);
+    this.kpi.avgScore = (totalScore / this.filteredSessions.length).toFixed(0);
+
+    const validAges = this.filteredSessions.filter(s => s.age).map(s => s.age!);
+    const totalAge = validAges.reduce((a, b) => a + b, 0);
+    this.kpi.avgAge = validAges.length ? (totalAge / validAges.length).toFixed(1) : '-';
   }
 
-  getAvgTime() {
-    if (!this.sessions.length) return 0;
-    const totalSec = this.sessions.reduce((sum, s) => sum + (s.durationSeconds || 0), 0);
-    const avgMin = (totalSec / this.sessions.length) / 60;
-    return avgMin.toFixed(1);
+  // ✅ Helper Function: เลือกสีตามชื่อเพศ (Value-based Coloring)
+  getGenderColor(g: string) {
+    if (!g) return '#FFCD56'; // สีเหลือง (ไม่ระบุ)
+    const gender = g.toLowerCase();
+    
+    // เช็คหญิงก่อน (เพื่อป้องกันคำว่า woman ไป match กับ man ในบาง logic)
+    if (gender === 'female' || gender === 'woman' || gender.includes('หญิง')) return '#FF6384'; // 🔴 สีชมพู
+    
+    // เช็คชาย
+    if (gender === 'male' || gender === 'man' || gender.includes('ชาย')) return '#36A2EB'; // 🔵 สีฟ้า
+    
+    // อื่นๆ
+    return '#FFCD56'; // 🟡 สีเหลือง
+  }
+
+  initCharts() {
+    this.charts.forEach(c => c.destroy());
+    this.charts = [];
+
+    const data = this.filteredSessions;
+    const groupBy = (key: keyof AdminSession) => {
+        const counts: any = {};
+        data.forEach(s => { const val = s[key] || 'Unknown'; counts[val] = (counts[val] || 0) + 1; });
+        return counts;
+    };
+
+    // 1. Track
+    const trackData = groupBy('topTrack');
+    this.createChart('trackChart', 'bar', Object.keys(trackData), Object.values(trackData), ['#00f3ff', '#bc13fe', '#ffff00', '#00ff00']);
+
+    // ✅ 2. Gender (แก้ให้ใช้สีที่ถูกต้องตามชื่อเพศ)
+    const genderData = groupBy('gender');
+    const genderLabels = Object.keys(genderData);
+    const genderValues = Object.values(genderData);
+    // map สีตาม label โดยตรง (ไม่ใช่ตาม index)
+    const genderColors = genderLabels.map(g => this.getGenderColor(g));
+    this.createChart('genderChart', 'doughnut', genderLabels, genderValues, genderColors);
+
+    // 3. Age
+    const ageData = groupBy('age');
+    const ageKeys = Object.keys(ageData).sort();
+    this.createChart('ageChart', 'bar', ageKeys, ageKeys.map(k => ageData[k]), '#bc13fe');
+
+    // ✅ 4. Track by Gender (แก้ให้ใช้สีที่ถูกต้องตามชื่อเพศ)
+    const tracks = ['CS', 'IT', 'CDT', 'CE'];
+    const activeGenders = [...new Set(data.map(s => s.gender).filter(Boolean) as string[])];
+    
+    const genderDatasets = activeGenders.map((g) => ({
+        label: g,
+        data: tracks.map(t => data.filter(s => s.topTrack === t && s.gender === g).length),
+        backgroundColor: this.getGenderColor(g) // 🔥 ใช้ฟังก์ชันเลือกสีที่ถูกต้อง
+    }));
+
+    this.createCustomChart('genderTrackChart', {
+        type: 'bar',
+        data: { labels: tracks, datasets: genderDatasets },
+        options: { 
+            responsive: true, maintainAspectRatio: false,
+            scales: { x: { stacked: true }, y: { stacked: true } } 
+        }
+    });
+
+    // 5. Trend Chart
+    const trendData = this.getTrendData(data);
+    this.createCustomChart('trendChart', {
+        type: 'line',
+        data: {
+            labels: trendData.labels,
+            datasets: [{
+                label: 'Users',
+                data: trendData.data,
+                borderColor: '#00f3ff',
+                backgroundColor: 'rgba(0, 243, 255, 0.2)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // 6. Province
+    const provData = groupBy('province');
+    const sortedProv = Object.entries(provData).sort((a:any, b:any) => b[1] - a[1]).slice(0, 5);
+    this.createChart('provinceChart', 'bar', sortedProv.map(p => p[0]), sortedProv.map(p => p[1]), '#00f3ff', { indexAxis: 'y' });
+  }
+
+  getTrendData(data: AdminSession[]) {
+    const isDaily = this.filters.period === 'week' || this.filters.period === 'month';
+    const formatOptions: any = isDaily ? { day: 'numeric', month: 'short' } : { month: 'short', year: 'numeric' };
+    const counts: any = {};
+    const sortedData = [...data].sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+    sortedData.forEach(s => {
+        const d = new Date(s.createdAt);
+        const key = isDaily 
+            ? d.toLocaleDateString('en-US', formatOptions) 
+            : `${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()}`;
+        counts[key] = (counts[key] || 0) + 1;
+    });
+
+    return {
+        labels: Object.keys(counts),
+        data: Object.values(counts)
+    };
+  }
+
+  createChart(refName: string, type: any, labels: any[], data: any[], colors: any, options: any = {}) {
+    let ctx = this.getCanvasCtx(refName);
+    if (ctx) this.createCustomChartBase(ctx, type, labels, data, colors, options);
+  }
+
+  createCustomChart(refName: string, config: any) {
+    let ctx = this.getCanvasCtx(refName);
+    if (ctx) this.charts.push(new Chart(ctx, config));
+  }
+
+  createCustomChartBase(ctx: any, type: any, labels: any[], data: any[], colors: any, extraOptions: any) {
+    this.charts.push(new Chart(ctx, {
+        type: type,
+        data: {
+            labels: labels,
+            datasets: [{ label: 'Count', data: data, backgroundColor: colors, borderWidth: 0 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { color: '#aaa', font: { size: 10 } } } },
+            scales: type !== 'pie' && type !== 'doughnut' ? {
+                y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#aaa', font: { size: 10 } } },
+                x: { grid: { display: false }, ticks: { color: '#aaa', font: { size: 10 } }, ...extraOptions.scales?.x }
+            } : {},
+            ...extraOptions
+        }
+    }));
+  }
+
+  getCanvasCtx(refName: string) {
+    const refsArray = this.chartRefs.toArray();
+    if (refName === 'trackChart') return refsArray[0]?.nativeElement;
+    if (refName === 'genderChart') return refsArray[1]?.nativeElement;
+    if (refName === 'ageChart') return refsArray[2]?.nativeElement;
+    if (refName === 'genderTrackChart') return refsArray[3]?.nativeElement;
+    if (refName === 'trendChart') return refsArray[4]?.nativeElement;
+    if (refName === 'provinceChart') return refsArray[5]?.nativeElement;
+    return null;
+  }
+
+  exportToCSV() {
+    if (this.filteredSessions.length === 0) {
+      alert('No data to export!');
+      return;
+    }
+    const headers = ['Date', 'Time', 'Name', 'Gender', 'Age', 'Province', 'School', 'Track', 'Score(%)'];
+    const rows = this.filteredSessions.map(s => {
+      const dateObj = new Date(s.createdAt);
+      const date = dateObj.toLocaleDateString('en-GB'); 
+      const time = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      return [
+        date, time, `"${s.studentName}"`, s.gender || '-', s.age || '-', s.province || '-', `"${s.school}"`, s.topTrack, s.topScorePercent
+      ].join(',');
+    });
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `survey_report_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }

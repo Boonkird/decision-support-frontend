@@ -5,6 +5,7 @@ import { SurveyComponent } from './pages/survey/survey.component';
 import { ResultComponent } from './pages/result/result.component';
 import { LoginComponent } from './pages/admin/login/login.component';
 import { DashboardComponent } from './pages/admin/dashboard/dashboard.component';
+import { AdminManageComponent } from './pages/admin/manage/manage.component';
 
 export const routes: Routes = [
   { path: '', component: IntroComponent },
@@ -13,6 +14,7 @@ export const routes: Routes = [
   { path: 'result', component: ResultComponent },
   { path: 'admin/login', component: LoginComponent },
   { path: 'admin/dashboard', component: DashboardComponent },
+  { path: 'admin/manage', component: AdminManageComponent },
 
   { path: '**', redirectTo: '' }, //อยู่ล่างสุดเสมอ
 ];
