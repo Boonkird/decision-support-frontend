@@ -119,7 +119,6 @@ import { CommonModule } from '@angular/common';
   `,
   styles: [
     `
-      /* --- CSS STARS (เพิ่มใหม่ให้หน้า Intro) --- */
       .star-1 {
         box-shadow:
           10vw 10vh #fff,
