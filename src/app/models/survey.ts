@@ -1,2 +1,1 @@
-export interface Survey {
-}
+export interface Survey {}

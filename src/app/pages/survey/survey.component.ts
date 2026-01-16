@@ -246,7 +246,7 @@ export class SurveyComponent implements OnInit {
   constructor(
     private surveyService: SurveyService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {

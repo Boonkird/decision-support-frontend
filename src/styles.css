@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
 
 /* วิธีเรียกใช้ Tailwind v4 แบบใหม่ (บรรทัดเดียวจบ) */
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Theme Setting */
 @theme {
@@ -16,24 +16,41 @@
 
 /* Global Styles */
 body {
-    background-color: var(--color-cyber-bg);
-    background-image: 
-        radial-gradient(circle at 50% 0%, #1a1a40 0%, transparent 50%),
-        radial-gradient(circle at 0% 100%, #240b36 0%, transparent 50%);
-    color: white;
-    font-family: var(--font-sans);
-    min-height: 100vh;
+  background-color: var(--color-cyber-bg);
+  background-image:
+    radial-gradient(circle at 50% 0%, #1a1a40 0%, transparent 50%),
+    radial-gradient(circle at 0% 100%, #240b36 0%, transparent 50%);
+  color: white;
+  font-family: var(--font-sans);
+  min-height: 100vh;
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--color-cyber-bg); }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-cyber-primary); }
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cyber-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-cyber-primary);
+}
 
 /* Animation: Slide In */
-.slide-in { animation: slideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+.slide-in {
+  animation: slideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
 @keyframes slideIn {
-    0% { transform: translateY(20px); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }

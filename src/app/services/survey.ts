@@ -75,7 +75,7 @@ import { Question, AnswerRequest } from '../models/survey.model';
                 [ngClass]="{
                   'bg-red-500': currentScore <= 2,
                   'bg-yellow-400': currentScore == 3,
-                  'bg-green-500': currentScore >= 4
+                  'bg-green-500': currentScore >= 4,
                 }"
                 [style.width.%]="(currentScore - 1) * 25"
               ></div>
@@ -120,7 +120,10 @@ export class SurveyComponent implements OnInit {
   loading = true;
   isInteracting = false;
 
-  constructor(private surveyService: SurveyService, private router: Router) {}
+  constructor(
+    private surveyService: SurveyService,
+    private router: Router,
+  ) {}
 
   ngOnInit() {
     // โหลดคำถามจาก Service

@@ -6,7 +6,7 @@ import {
   StudentProfile,
   AnswerRequest,
   SurveyResult,
-  SurveySubmitRequest
+  SurveySubmitRequest,
 } from '../models/survey.model';
 
 @Injectable({
@@ -14,8 +14,8 @@ import {
 })
 export class SurveyService {
   // URL ของ Backend (Tomcat)
-  private apiUrl = 'http://127.0.0.1:8080/api'; 
-  
+  private apiUrl = 'http://127.0.0.1:8080/api';
+
   // ตัวแปรเก็บข้อมูลนักเรียนชั่วคราว (รอส่งตอนทำแบบสอบถามเสร็จ)
   private userProfile: StudentProfile | null = null;
 
@@ -47,7 +47,7 @@ export class SurveyService {
   }
 
   getLevels() {
-  // ยิงไปหา Backend จริง
+    // ยิงไปหา Backend จริง
     return this.http.get<any[]>(`${this.apiUrl}/levels`);
   }
 
@@ -65,7 +65,7 @@ export class SurveyService {
     // เตรียมข้อมูลตาม Format ที่ Backend ต้องการ (SurveySubmitRequest)
     const payload: SurveySubmitRequest = {
       studentProfile: this.userProfile,
-      answers: answers
+      answers: answers,
     };
 
     // ยิงไปที่ http://localhost:8080/api/survey/submit

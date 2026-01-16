@@ -5,7 +5,7 @@ import { AdminSession, DashboardStats } from '../models/admin.model';
 import { School, Track } from '../models/survey.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AdminService {
   // อย่าลืมใช้ IP 127.0.0.1 เพื่อความเร็ว
@@ -43,7 +43,7 @@ export class AdminService {
 
   updateTrack(id: number, data: any): Observable<any> {
     return this.http.put(`${this.trackUrl}/${id}`, data);
-  } 
+  }
 
   deleteTrack(id: number): Observable<any> {
     return this.http.delete(`${this.trackUrl}/${id}`);
@@ -92,8 +92,8 @@ export class AdminService {
     return this.http.post(this.programUrl, data);
   }
 
-  updateProgram(id: number, data: any): Observable<any> { 
-    return this.http.put(`${this.programUrl}/${id}`, data); 
+  updateProgram(id: number, data: any): Observable<any> {
+    return this.http.put(`${this.programUrl}/${id}`, data);
   }
 
   deleteProgram(id: number): Observable<any> {
@@ -101,19 +101,19 @@ export class AdminService {
   }
 
   //----------------------------------------------------------------
-  getAllLevels(): Observable<any[]> { 
-    return this.http.get<any[]>(this.levelUrl); 
+  getAllLevels(): Observable<any[]> {
+    return this.http.get<any[]>(this.levelUrl);
   }
 
-  createLevel(data: any): Observable<any> { 
-    return this.http.post(this.levelUrl, data); 
-  }
-  
-  updateLevel(id: number, data: any): Observable<any> { 
-    return this.http.put(`${this.levelUrl}/${id}`, data); 
+  createLevel(data: any): Observable<any> {
+    return this.http.post(this.levelUrl, data);
   }
 
-  deleteLevel(id: number): Observable<any> { 
-    return this.http.delete(`${this.levelUrl}/${id}`); 
+  updateLevel(id: number, data: any): Observable<any> {
+    return this.http.put(`${this.levelUrl}/${id}`, data);
+  }
+
+  deleteLevel(id: number): Observable<any> {
+    return this.http.delete(`${this.levelUrl}/${id}`);
   }
 }
