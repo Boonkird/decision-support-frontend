@@ -6,9 +6,11 @@ import { ResultComponent } from './pages/result/result.component';
 import { LoginComponent } from './pages/admin/login/login.component';
 import { DashboardComponent } from './pages/admin/dashboard/dashboard.component';
 import { AdminManageComponent } from './pages/admin/manage/manage.component';
+import { InstructionComponent } from './pages/instruction/instruction';
 
 export const routes: Routes = [
   { path: '', component: IntroComponent },
+  { path: 'instruction', component: InstructionComponent },
   { path: 'student-info', component: StudentInfoComponent },
   { path: 'survey', component: SurveyComponent },
   { path: 'result', component: ResultComponent },

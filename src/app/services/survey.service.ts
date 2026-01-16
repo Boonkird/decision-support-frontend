@@ -46,6 +46,16 @@ export class SurveyService {
     return this.http.get<Question[]>(`${this.apiUrl}/questions`);
   }
 
+  getLevels() {
+  // ยิงไปหา Backend จริง
+    return this.http.get<any[]>(`${this.apiUrl}/levels`);
+  }
+
+  getPrograms() {
+    // ยิงไปหา Backend จริง
+    return this.http.get<any[]>(`${this.apiUrl}/programs`);
+  }
+
   // --- 3. ส่งคำตอบไปประมวลผล (POST) ---
   submitSurvey(answers: AnswerRequest[]): Observable<SurveyResult[]> {
     if (!this.userProfile) {
