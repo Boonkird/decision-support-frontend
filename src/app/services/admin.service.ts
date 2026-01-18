@@ -3,18 +3,27 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AdminSession, DashboardStats } from '../models/admin.model';
 import { School, Track } from '../models/survey.model';
+import { environment } from '../../environment.prod';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AdminService {
   // อย่าลืมใช้ IP 127.0.0.1 เพื่อความเร็ว
-  private apiUrl = 'http://127.0.0.1:8080/api/admin';
-  private trackUrl = 'http://127.0.0.1:8080/api/tracks';
-  private schoolUrl = 'http://127.0.0.1:8080/api/schools';
-  private questionUrl = 'http://127.0.0.1:8080/api/questions';
-  private programUrl = 'http://127.0.0.1:8080/api/programs';
-  private levelUrl = 'http://127.0.0.1:8080/api/levels';
+  // private apiUrl = 'http://127.0.0.1:8080/api/admin';
+  // private trackUrl = 'http://127.0.0.1:8080/api/tracks';
+  // private schoolUrl = 'http://127.0.0.1:8080/api/schools';
+  // private questionUrl = 'http://127.0.0.1:8080/api/questions';
+  // private programUrl = 'http://127.0.0.1:8080/api/programs';
+  // private levelUrl = 'http://127.0.0.1:8080/api/levels';
+  
+  private apiUrl = environment.apiUrl;
+  private trackUrl = environment.apiUrl;
+  private schoolUrl = environment.apiUrl;
+  private questionUrl = environment.apiUrl;
+  private programUrl = environment.apiUrl;
+  private levelUrl = environment.apiUrl;
+
 
   constructor(private http: HttpClient) {}
 

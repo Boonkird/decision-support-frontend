@@ -8,13 +8,15 @@ import {
   SurveyResult,
   SurveySubmitRequest,
 } from '../models/survey.model';
+import { environment } from '../../environment.prod';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SurveyService {
-  // URL ของ Backend (Tomcat)
-  private apiUrl = 'http://127.0.0.1:8080/api';
+
+  // private apiUrl = 'http://127.0.0.1:8080/api';
+  private apiUrl = environment.apiUrl;
 
   // ตัวแปรเก็บข้อมูลนักเรียนชั่วคราว (รอส่งตอนทำแบบสอบถามเสร็จ)
   private userProfile: StudentProfile | null = null;
