@@ -63,7 +63,7 @@ import Swal from 'sweetalert2';
 
       <div
         *ngIf="!isProcessing && bestMatch"
-        class="relative z-20 w-full max-w-6xl animate-materialize"
+        class="relative z-20 w-full max-w-6xl animate-fadeInUp"
       >
         <div class="text-center mb-8">
           <span
@@ -261,19 +261,19 @@ import Swal from 'sweetalert2';
         }
       }
 
-      .animate-materialize {
-        animation: materialize 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+      .animate-fadeInUp {
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
-      @keyframes materialize {
-        0% {
+      @keyframes fadeInUp {
+        from {
           opacity: 0;
-          transform: scale(0.9) translateY(50px);
-          filter: blur(20px);
+          transform: translateY(20px);
+          scale: 0.95;
         }
-        100% {
+        to {
           opacity: 1;
-          transform: scale(1) translateY(0);
-          filter: blur(0);
+          transform: translateY(0);
+          scale: 1;
         }
       }
     `,
@@ -358,7 +358,6 @@ export class ResultComponent implements OnInit, AfterViewInit {
   initChart() {
     if (!this.radarChartRef) return;
 
-    // เรียง CS, IT, CDT, CE เพื่อให้กราฟสวย
     const order = ['CS', 'IT', 'CDT', 'CE'];
     const sortedResults = order.map(
       (code) =>

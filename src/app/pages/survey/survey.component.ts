@@ -11,25 +11,24 @@ import { Question, AnswerRequest } from '../../models/survey.model';
   imports: [CommonModule, FormsModule],
   template: `
     <div
-      class="min-h-screen bg-cyber-bg flex flex-col items-center justify-center p-4 relative overflow-hidden text-white font-sans"
+      class="min-h-screen bg-cyber-bg flex flex-col items-center justify-center p-4 relative overflow-hidden text-white font-sans transition-colors duration-700 ease-in-out"
     >
       <div
-        class="absolute inset-0 bg-[url('https://assets.codepen.io/13471/sparkles.gif')] opacity-20 pointer-events-none mix-blend-screen"
+        class="absolute inset-0 transition-colors duration-500 ease-linear opacity-20"
+        [style.backgroundColor]="getBgGradient()"
       ></div>
 
       <div
-        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyber-primary/20 blur-[150px] rounded-full pointer-events-none animate-pulse"
+        class="absolute inset-0 bg-[url('https://assets.codepen.io/13471/sparkles.gif')] opacity-60 mix-blend-screen pointer-events-none"
       ></div>
 
+      <div class="fixed inset-0 z-0 pointer-events-none">
+        <div class="absolute w-[2px] h-[2px] bg-white rounded-full star-1 opacity-90"></div>
+        <div class="absolute w-[3px] h-[3px] bg-blue-200 rounded-full star-2 opacity-70"></div>
+      </div>
+
       <div
-        class="absolute w-full h-1 top-0 bg-gradient-to-r from-transparent via-cyber-primary to-transparent opacity-50 shadow-[0_0_20px_rgba(0,243,255,0.5)]"
-      ></div>
-      <div
-        class="absolute -bottom-40 -left-40 w-96 h-96 bg-cyber-primary blur-[150px] opacity-20 animate-pulse"
-      ></div>
-      <div
-        class="absolute -top-40 -right-40 w-96 h-96 bg-cyber-secondary blur-[150px] opacity-20 animate-pulse"
-        style="animation-delay: 1s;"
+        class="absolute w-full h-full bg-gradient-to-b from-gray-900/80 via-[#050b14]/90 to-cyber-bg z-0"
       ></div>
 
       <div *ngIf="loading" class="flex flex-col items-center justify-center z-50">
@@ -42,80 +41,104 @@ import { Question, AnswerRequest } from '../../models/survey.model';
 
       <div
         *ngIf="!loading && questions.length > 0"
-        class="w-full max-w-3xl relative z-10 perspective-1000"
+        class="w-full max-w-4xl relative z-10 perspective-1000 animate-fadeInUp"
       >
         <div
-          class="mb-8 relative transition-opacity duration-300"
+          class="mb-10 relative transition-opacity duration-300"
           [ngClass]="isWarping ? 'opacity-50' : 'opacity-100'"
         >
-          <div class="flex justify-between items-end mb-2">
-            <div class="flex flex-col">
-              <span class="text-cyber-primary text-xs uppercase tracking-[0.2em] font-bold"
-                >Current Phase</span
+          <div class="flex justify-between items-end mb-3 px-1">
+            <div>
+              <span
+                class="text-cyber-primary text-[10px] uppercase tracking-[0.2em] font-bold block mb-1"
+                >Current Sector</span
               >
-              <span class="text-2xl font-bold text-white capitalize drop-shadow-md">{{
-                currentQuestion.sectionTitle
-              }}</span>
+              <span
+                class="text-2xl font-black text-white capitalize drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] tracking-wide"
+              >
+                {{ currentQuestion.sectionTitle }}
+              </span>
             </div>
             <div class="text-right">
-              <span class="text-4xl font-bold text-cyber-secondary font-mono">{{
-                currentIndex + 1
-              }}</span>
-              <span class="text-gray-500 text-xl font-mono">/{{ questions.length }}</span>
+              <span class="text-gray-400 text-xs font-mono uppercase tracking-widest"
+                >Question {{ currentIndex + 1 }} / {{ questions.length }}</span
+              >
             </div>
           </div>
+
+          <div class="grid grid-cols-3 gap-2 w-full">
+            <div
+              *ngFor="let sec of uniqueSections; let i = index"
+              class="relative h-2 bg-gray-800 rounded-full overflow-hidden border border-white/5"
+            >
+              <div
+                class="h-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(0,243,255,0.5)]"
+                [ngClass]="{
+                  'bg-cyber-primary': i === currentSectionIndex,
+                  'bg-green-500': i < currentSectionIndex,
+                  'bg-transparent': i > currentSectionIndex,
+                }"
+                [style.width.%]="getSectionProgress(i)"
+              ></div>
+            </div>
+          </div>
+
           <div
-            class="h-2 bg-gray-800 w-full relative rounded-full overflow-hidden border border-white/10"
+            class="grid grid-cols-3 gap-2 w-full mt-2 text-[10px] text-gray-500 uppercase tracking-wider text-center font-mono"
           >
             <div
-              class="h-full bg-gradient-to-r from-cyber-primary via-white to-cyber-secondary transition-all duration-500 ease-out shadow-[0_0_15px_rgba(0,243,255,0.8)]"
-              [style.width.%]="calculateProgress()"
-            ></div>
+              *ngFor="let sec of uniqueSections; let i = index"
+              [ngClass]="{ 'text-cyber-primary font-bold': i === currentSectionIndex }"
+            >
+              {{ sec }}
+            </div>
           </div>
         </div>
 
         <div class="relative">
           <div
-            class="bg-gray/5 border border-white/20 backdrop-blur-sm p-8 md:p-12 rounded-[2.5rem] shadow-[0_0_50px_rgba(0,243,255,0.15)] relative overflow-hidden group hover:shadow-[0_0_80px_rgba(0,243,255,0.3)] hover:border-white/50 transition-all duration-500 origin-center"
+            class="bg-white/5 backdrop-blur-sm p-8 md:p-12 rounded-[2.5rem] shadow-[0_0_60px_rgba(0,243,255,0.15)] relative overflow-hidden group transition-all duration-300 origin-center"
             [ngClass]="animationClass"
+            [style.borderColor]="getBorderColor()"
+            [style.boxShadow]="getBoxShadow()"
+            style="border-width: 1px;"
           >
             <div
-              class="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%] pointer-events-none z-0 opacity-10"
+              class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent to-transparent opacity-50"
+              [style.backgroundColor]="getThemeColor()"
             ></div>
 
             <div
-              class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyber-primary to-transparent opacity-50"
-            ></div>
-
-            <div
-              class="min-h-[120px] flex items-center justify-center text-center mb-6 relative z-10 px-4"
+              class="min-h-[140px] flex items-center justify-center text-center mb-4 relative z-10 px-4"
             >
               <h1
-                class="text-3xl md:text-5xl font-extrabold leading-tight text-white drop-shadow-[0_0_25px_rgba(0,243,255,0.6)] tracking-wide"
+                class="text-4xl md:text-4xl font-black leading-tight tracking-wide drop-shadow-[0_0_15px_rgba(0,243,255,0.4)] text-transparent bg-clip-text bg-gradient-to-r from-cyber-primary via-white to-cyber-primary bg-[length:200%_auto] animate-shine"
               >
                 {{ currentQuestion.questionText }}
               </h1>
             </div>
 
-            <div class="flex justify-center mb-8 h-16 relative z-10">
+            <div class="flex justify-center mb-8 h-12 relative z-10">
               <div
-                class="text-5xl md:text-6xl transition-all duration-300 transform drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"
-                [ngClass]="{ 'scale-125 opacity-100': isInteracting, 'opacity-80': !isInteracting }"
+                class="text-3xl md:text-4xl transition-all duration-200 transform drop-shadow-[0_0_10px_rgba(255,255,255,0.1)] grayscale opacity-60"
+                [ngClass]="{ 'scale-125 grayscale-0 opacity-100': isInteracting }"
               >
                 {{ getEmoji(currentScore) }}
               </div>
             </div>
 
             <div
-              class="text-center text-cyber-primary text-lg mb-8 font-bold tracking-wider uppercase relative z-10"
+              class="text-center text-lg mb-8 font-bold tracking-wider uppercase relative z-10 transition-colors duration-300"
+              [style.color]="getThemeColor()"
             >
               {{ getLabel(currentScore) }}
             </div>
 
             <div class="relative w-full h-16 flex items-center justify-center px-4 z-10">
-              <div class="absolute w-full h-2 bg-gray-500/50 rounded-full overflow-hidden">
+              <div class="absolute w-full h-2 bg-gray-600/50 rounded-full overflow-hidden">
                 <div
-                  class="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 opacity-60"
+                  class="h-full opacity-60 transition-colors duration-300"
+                  [style.background]="getSliderGradient()"
                 ></div>
               </div>
               <div class="absolute w-full flex justify-between px-1 pointer-events-none">
@@ -136,15 +159,17 @@ import { Question, AnswerRequest } from '../../models/survey.model';
                 (touchend)="isInteracting = false"
                 class="w-full absolute z-20 opacity-0 cursor-pointer h-12"
               />
+
               <div
-                class="absolute h-8 w-8 bg-white rounded-full shadow-[0_0_20px_rgba(255,255,255,0.8)] border-4 border-cyber-bg pointer-events-none transition-all duration-150 ease-out"
+                class="absolute h-8 w-8 bg-white rounded-full border-4 pointer-events-none transition-all duration-150 ease-out shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+                [style.borderColor]="getThemeColor()"
                 [style.left.%]="(currentScore - 1) * 25"
                 style="transform: translateX(-50%)"
               ></div>
             </div>
 
             <div
-              class="flex justify-between text-xs text-gray-500 mt-2 uppercase tracking-widest font-mono relative z-10"
+              class="flex justify-between text-xs text-gray-400 mt-2 uppercase tracking-widest font-mono relative z-10"
             >
               <span>Disagree</span>
               <span>Agree</span>
@@ -154,13 +179,12 @@ import { Question, AnswerRequest } from '../../models/survey.model';
               <button
                 (click)="nextQuestion()"
                 [disabled]="isWarping"
-                class="group relative bg-cyber-primary text-black font-bold py-4 px-12 rounded-full hover:scale-105 transition-all shadow-[0_0_20px_rgba(0,243,255,0.4)] overflow-hidden"
+                class="group relative flex justify-center items-center gap-3 px-12 py-4 bg-white text-black font-bold text-sm uppercase tracking-[0.2em] rounded-full overflow-hidden transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span class="relative z-10 tracking-widest">
-                  {{ isWarping ? 'CLOSING...' : 'CONFIRM CHOICE' }}
-                </span>
+                <span class="relative z-10">{{ isWarping ? 'SAVING...' : 'CONFIRM CHOICE' }}</span>
                 <div
-                  class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+                  *ngIf="isWarping"
+                  class="absolute bottom-0 left-0 h-1 bg-cyber-primary animate-loading-bar"
                 ></div>
               </button>
             </div>
@@ -171,9 +195,57 @@ import { Question, AnswerRequest } from '../../models/survey.model';
   `,
   styles: [
     `
-      /* --- 1. CRT TURN OFF (ขาออก) --- */
+      /* ✅ 1. Entrance Animation */
+      .animate-fadeInUp {
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+          scale: 0.95;
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+          scale: 1;
+        }
+      }
+
+      /* ✅ 2. Star Animations */
+      .star-1 {
+        box-shadow:
+          10vw 10vh #fff,
+          20vw 80vh #fff,
+          80vw 10vh #fff,
+          70vw 70vh #fff,
+          40vw 30vh #fff,
+          90vw 50vh #fff,
+          30vw 60vh #fff;
+        animation: twinkle 3s infinite ease-in-out;
+      }
+      .star-2 {
+        box-shadow:
+          50vw 20vh #a5f3fc,
+          80vw 80vh #a5f3fc,
+          10vw 50vh #a5f3fc;
+        animation: twinkle 5s infinite ease-in-out 1s;
+      }
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0.3;
+          transform: scale(0.8);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.2);
+        }
+      }
+
+      /* Existing Animations */
       .crt-off {
-        animation: crtOff 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        animation: crtOff 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
       }
       @keyframes crtOff {
         0% {
@@ -181,34 +253,24 @@ import { Question, AnswerRequest } from '../../models/survey.model';
           opacity: 1;
           filter: brightness(1);
         }
-        30% {
+        40% {
           transform: scale(1, 0.005);
           opacity: 1;
-          filter: brightness(5);
-        }
-        60% {
-          transform: scale(1, 0.005);
-          opacity: 1;
+          filter: brightness(3);
         }
         100% {
           transform: scale(0, 0.005);
           opacity: 0;
         }
       }
-
-      /* --- 2. CRT TURN ON (ขาเข้า) --- */
       .crt-on {
-        animation: crtOn 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        animation: crtOn 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
       }
       @keyframes crtOn {
         0% {
           transform: scale(0, 0.005);
           opacity: 0;
-          filter: brightness(5);
-        }
-        30% {
-          transform: scale(1, 0.005);
-          opacity: 1;
+          filter: brightness(3);
         }
         60% {
           transform: scale(1, 0.005);
@@ -220,15 +282,37 @@ import { Question, AnswerRequest } from '../../models/survey.model';
           filter: brightness(1);
         }
       }
-
-      /* --- 3. PREPARE --- */
       .prepare-anim {
         opacity: 0 !important;
         transform: scale(0);
       }
-
       .perspective-1000 {
         perspective: 1000px;
+      }
+      .animate-pulse-slow {
+        animation: pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      @keyframes loading-bar {
+        0% {
+          width: 0%;
+        }
+        100% {
+          width: 100%;
+        }
+      }
+      .animate-loading-bar {
+        animation: loading-bar 0.8s linear forwards;
+      }
+      @keyframes shine {
+        0% {
+          background-position: 200% center;
+        }
+        100% {
+          background-position: -200% center;
+        }
+      }
+      .animate-shine {
+        animation: shine 5s linear infinite;
       }
     `,
   ],
@@ -243,6 +327,9 @@ export class SurveyComponent implements OnInit {
   isWarping = false;
   animationClass = '';
 
+  uniqueSections: string[] = [];
+  currentSectionIndex = 0;
+
   constructor(
     private surveyService: SurveyService,
     private router: Router,
@@ -254,6 +341,7 @@ export class SurveyComponent implements OnInit {
       next: (q) => {
         this.questions = q || [];
         this.loading = false;
+        this.uniqueSections = [...new Set(this.questions.map((q) => q.sectionTitle))];
         this.cdr.detectChanges();
       },
       error: () => {
@@ -266,6 +354,35 @@ export class SurveyComponent implements OnInit {
   get currentQuestion() {
     return this.questions[this.currentIndex];
   }
+
+  getThemeColor(): string {
+    if (this.currentScore <= 2) return '#ef4444';
+    if (this.currentScore >= 4) return '#22c55e';
+    return '#00f3ff';
+  }
+
+  getBgGradient(): string {
+    if (this.currentScore <= 2) return 'rgba(239, 68, 68, 0.15)';
+    if (this.currentScore >= 4) return 'rgba(34, 197, 94, 0.15)';
+    return 'transparent';
+  }
+
+  getBorderColor(): string {
+    if (this.currentScore <= 2) return 'rgba(239, 68, 68, 0.5)';
+    if (this.currentScore >= 4) return 'rgba(34, 197, 94, 0.5)';
+    return 'rgba(255, 255, 255, 0.2)';
+  }
+
+  getBoxShadow(): string {
+    if (this.currentScore <= 2) return '0 0 60px rgba(239, 68, 68, 0.2)';
+    if (this.currentScore >= 4) return '0 0 60px rgba(34, 197, 94, 0.2)';
+    return '0 0 60px rgba(0, 243, 255, 0.15)';
+  }
+
+  getSliderGradient(): string {
+    return 'linear-gradient(90deg, #ef4444 0%, #eab308 50%, #22c55e 100%)';
+  }
+
   getEmoji(score: number): string {
     switch (score) {
       case 1:
@@ -292,41 +409,60 @@ export class SurveyComponent implements OnInit {
     ][score - 1];
   }
 
+  getSectionProgress(sectionIndex: number): number {
+    if (sectionIndex < this.currentSectionIndex) return 100;
+    if (sectionIndex > this.currentSectionIndex) return 0;
+
+    const currentSectionName = this.uniqueSections[this.currentSectionIndex];
+    const questionsInSection = this.questions.filter((q) => q.sectionTitle === currentSectionName);
+    const totalInSection = questionsInSection.length;
+
+    let questionsBeforeThisSection = 0;
+    for (let i = 0; i < sectionIndex; i++) {
+      questionsBeforeThisSection += this.questions.filter(
+        (q) => q.sectionTitle === this.uniqueSections[i],
+      ).length;
+    }
+
+    const currentInSection = this.currentIndex - questionsBeforeThisSection;
+    return Math.min(100, (currentInSection / totalInSection) * 100);
+  }
+
+  updateSectionIndex() {
+    if (!this.currentQuestion) return;
+    this.currentSectionIndex = this.uniqueSections.indexOf(this.currentQuestion.sectionTitle);
+  }
+
   nextQuestion() {
     if (this.isWarping) return;
 
-    // 1. CRT Off
     this.isWarping = true;
     this.animationClass = 'crt-off';
 
-    // 2. Logic Delay
     setTimeout(() => {
       this.answers.push({ questionId: this.currentQuestion.questionId, score: this.currentScore });
 
       if (this.currentIndex < this.questions.length - 1) {
         this.currentIndex++;
         this.currentScore = 3;
-
-        // --- Fix Flicker ---
+        this.updateSectionIndex();
         this.animationClass = 'prepare-anim';
         this.cdr.detectChanges();
 
-        // 3. CRT On
         setTimeout(() => {
           this.animationClass = 'crt-on';
           this.cdr.detectChanges();
-        }, 100);
+        }, 50);
 
-        // 4. Finish Anim
         setTimeout(() => {
           this.isWarping = false;
           this.animationClass = '';
           this.cdr.detectChanges();
-        }, 900);
+        }, 450);
       } else {
         this.finish();
       }
-    }, 750);
+    }, 350);
   }
 
   finish() {
