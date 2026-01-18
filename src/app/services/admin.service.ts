@@ -17,28 +17,29 @@ export class AdminService {
   // private programUrl = 'http://127.0.0.1:8080/api/programs';
   // private levelUrl = 'http://127.0.0.1:8080/api/levels';
   
-  private apiUrl = environment.apiUrl;
-  private trackUrl = environment.apiUrl;
-  private schoolUrl = environment.apiUrl;
-  private questionUrl = environment.apiUrl;
-  private programUrl = environment.apiUrl;
-  private levelUrl = environment.apiUrl;
+  private adminUrl = `${environment.apiUrl}/admin`; 
+
+  private trackUrl = `${environment.apiUrl}/tracks`;
+  private schoolUrl = `${environment.apiUrl}/schools`;
+  private questionUrl = `${environment.apiUrl}/questions`;
+  private programUrl = `${environment.apiUrl}/programs`;
+  private levelUrl = `${environment.apiUrl}/levels`;
 
 
   constructor(private http: HttpClient) {}
 
   // ดึงข้อมูลกราฟสถิติ
   getDashboardStats(): Observable<DashboardStats> {
-    return this.http.get<DashboardStats>(`${this.apiUrl}/dashboard-stats`);
+    return this.http.get<DashboardStats>(`${this.adminUrl}/dashboard-stats`);
   }
 
   // ดึงรายชื่อคนทำแบบทดสอบทั้งหมด
   getSessions(): Observable<AdminSession[]> {
-    return this.http.get<AdminSession[]>(`${this.apiUrl}/sessions`);
+    return this.http.get<AdminSession[]>(`${this.adminUrl}/sessions`);
   }
 
   deleteSession(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/sessions/${id}`);
+    return this.http.delete<void>(`${this.adminUrl}/sessions/${id}`);
   }
 
   //----------------------------------------------------------------
