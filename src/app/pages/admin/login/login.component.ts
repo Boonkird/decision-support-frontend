@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { AdminService } from '../../../services/admin.service';
 
 @Component({
   selector: 'app-admin-login',
@@ -83,6 +84,7 @@ export class LoginComponent {
   loading = false;
 
   constructor(
+    private adminService: AdminService,
     private http: HttpClient,
     private router: Router,
   ) {}
@@ -95,16 +97,13 @@ export class LoginComponent {
 
     // ยิง API ไปที่ Backend
     const body = { username: this.username, password: this.password };
+    const credentials = { username: this.username, password: this.password };
 
-    // อย่าลืมแก้ IP ตรงนี้ให้เป็น 127.0.0.1 เหมือน SurveyService นะครับ
-    this.http.post('http://127.0.0.1:8080/api/auth/login', body).subscribe({
+    this.adminService.login(credentials).subscribe({
       next: (res: any) => {
         console.log('Login Success:', res);
-        // บันทึกสถานะว่า Login แล้ว (แบบง่าย)
         localStorage.setItem('isAdmin', 'true');
         localStorage.setItem('adminUser', JSON.stringify(res));
-
-        // ไปหน้า Dashboard (ที่เราจะสร้างต่อไป)
         this.router.navigate(['/admin/dashboard']);
       },
       error: (err) => {
@@ -113,5 +112,23 @@ export class LoginComponent {
         this.loading = false;
       },
     });
+
+    // อย่าลืมแก้ IP ตรงนี้ให้เป็น 127.0.0.1 เหมือน SurveyService นะครับ
+    // this.http.post('http://127.0.0.1:8080/api/auth/login', body).subscribe({
+    //   next: (res: any) => {
+    //     console.log('Login Success:', res);
+    //     // บันทึกสถานะว่า Login แล้ว (แบบง่าย)
+    //     localStorage.setItem('isAdmin', 'true');
+    //     localStorage.setItem('adminUser', JSON.stringify(res));
+
+    //     // ไปหน้า Dashboard (ที่เราจะสร้างต่อไป)
+    //     this.router.navigate(['/admin/dashboard']);
+    //   },
+    //   error: (err) => {
+    //     console.error('Login Failed:', err);
+    //     this.errorMessage = 'Access Denied: Invalid credentials';
+    //     this.loading = false;
+    //   },
+    // });
   }
 }
