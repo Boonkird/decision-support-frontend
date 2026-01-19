@@ -8,7 +8,7 @@ import {
   SurveyResult,
   SurveySubmitRequest,
 } from '../models/survey.model';
-import { environment } from '../../environment.prod';
+import { environment } from '../../environments/environment.prod';
 
 @Injectable({
   providedIn: 'root',

@@ -3,7 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AdminSession, DashboardStats } from '../models/admin.model';
 import { School, Track } from '../models/survey.model';
-import { environment } from '../../environment.prod';
+// import { environment } from '../../environment.prod';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
