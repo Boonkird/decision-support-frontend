@@ -18,14 +18,22 @@ export class AdminService {
   // private programUrl = 'http://127.0.0.1:8080/api/programs';
   // private levelUrl = 'http://127.0.0.1:8080/api/levels';
   
-  private apiUrl = `${environment.apiUrl}/auth`;
-  private adminUrl = `${environment.apiUrl}/admin`; 
+  // private apiUrl = `${environment.apiUrl}/auth`;
+  // private adminUrl = `${environment.apiUrl}/admin`; 
+  // private trackUrl = `${environment.apiUrl}/tracks`;
+  // private schoolUrl = `${environment.apiUrl}/schools`;
+  // private questionUrl = `${environment.apiUrl}/questions`;
+  // private programUrl = `${environment.apiUrl}/programs`;
+  // private levelUrl = `${environment.apiUrl}/levels`;
 
-  private trackUrl = `${environment.apiUrl}/tracks`;
-  private schoolUrl = `${environment.apiUrl}/schools`;
-  private questionUrl = `${environment.apiUrl}/questions`;
-  private programUrl = `${environment.apiUrl}/programs`;
-  private levelUrl = `${environment.apiUrl}/levels`;
+  private readonly BASE_URL = 'https://decision-support-backend.onrender.com/api';
+  private apiUrl = `${this.BASE_URL}/auth`;
+  private adminUrl = `${this.BASE_URL}/admin`;
+  private trackUrl = `${this.BASE_URL}/tracks`;
+  private schoolUrl = `${this.BASE_URL}/schools`;
+  private questionUrl = `${this.BASE_URL}/questions`;
+  private programUrl = `${this.BASE_URL}/programs`;
+  private levelUrl = `${this.BASE_URL}/levels`;
 
 
   constructor(private http: HttpClient) {}
@@ -33,6 +41,7 @@ export class AdminService {
   login(credentials: any) {
     // URL สุดท้ายจะเป็น: https://decision-support-backend.onrender.com/api/auth/login
     return this.http.post(`${this.apiUrl}/login`, credentials);
+    
   }
 
   // ดึงข้อมูลกราฟสถิติ
