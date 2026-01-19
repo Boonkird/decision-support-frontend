@@ -17,6 +17,7 @@ export class AdminService {
   // private programUrl = 'http://127.0.0.1:8080/api/programs';
   // private levelUrl = 'http://127.0.0.1:8080/api/levels';
   
+  private apiUrl = `${environment.apiUrl}/auth`;
   private adminUrl = `${environment.apiUrl}/admin`; 
 
   private trackUrl = `${environment.apiUrl}/tracks`;
@@ -27,6 +28,11 @@ export class AdminService {
 
 
   constructor(private http: HttpClient) {}
+
+  login(credentials: any) {
+    // URL สุดท้ายจะเป็น: https://decision-support-backend.onrender.com/api/auth/login
+    return this.http.post(`${this.apiUrl}/login`, credentials);
+  }
 
   // ดึงข้อมูลกราฟสถิติ
   getDashboardStats(): Observable<DashboardStats> {
