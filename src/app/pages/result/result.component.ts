@@ -410,17 +410,37 @@ export class ResultComponent implements OnInit, AfterViewInit {
   }
 
   share() {
+    // 1. ตรวจสอบว่ามีข้อมูลผลลัพธ์หรือไม่
     if (!this.bestMatch) return;
-    const text = `🚀 My Tech DNA: ${this.bestMatch.trackCode} (${this.bestMatch.percentage.toFixed(0)}%)\nFind yours at: [Link]`;
-    navigator.clipboard.writeText(text).then(() => {
-      Swal.fire({
-        icon: 'success',
-        title: 'Copied!',
-        background: '#1a1a1a',
-        color: '#fff',
-        timer: 1500,
-        showConfirmButton: false,
+
+    // 2. เตรียมข้อมูลที่จะแชร์
+    const shareData = {
+      title: 'My Tech DNA Result',
+      text: `🚀 ผลลัพธ์ของฉันคือ: ${this.bestMatch.trackCode} (${this.bestMatch.percentage.toFixed(1)}%) \nมาค้นหาตัวตนสายคอมฯ ของคุณกันเถอะ!`,
+      url: window.location.href // หรือใส่ URL เว็บจริงของคุณ เช่น 'https://your-project.vercel.app'
+    };
+
+    // 3. ตรวจสอบว่า Browser รองรับฟีเจอร์แชร์ไหม (ส่วนใหญ่บนมือถือรองรับ)
+    if (navigator.share) {
+      navigator.share(shareData)
+        .then(() => console.log('Shared successfully'))
+        .catch((err) => console.log('Error sharing:', err));
+    } 
+    // 4. กรณีใช้งานบน PC หรือ Browser ที่ไม่รองรับ -> ให้ Copy ลง Clipboard แทน
+    else {
+      const clipboardContent = `${shareData.text}\n${shareData.url}`;
+      navigator.clipboard.writeText(clipboardContent).then(() => {
+        // แจ้งเตือนว่า Copy แล้ว (ใช้ Swal ที่คุณมีอยู่แล้ว)
+        Swal.fire({
+          icon: 'success',
+          title: 'คัดลอกลิงก์เรียบร้อย!',
+          text: 'นำไปวางเพื่อแชร์ต่อได้เลย',
+          timer: 1500,
+          showConfirmButton: false,
+          background: '#1a1a1a', // ปรับสีให้เข้ากับ Theme ดำของคุณ
+          color: '#ffffff'
+        });
       });
-    });
+    }
   }
 }
