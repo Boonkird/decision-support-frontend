@@ -112,7 +112,7 @@ import { Question, AnswerRequest } from '../../models/survey.model';
               class="min-h-[140px] flex items-center justify-center text-center mb-4 relative z-10 px-4"
             >
               <h1
-                class="text-xl md:text-4xl font-black leading-tight tracking-wide drop-shadow-[0_0_15px_rgba(0,243,255,0.4)] text-transparent bg-clip-text bg-gradient-to-r from-cyber-primary via-white to-cyber-primary bg-[length:200%_auto] animate-shine"
+                class="text-2xl md:text-4xl font-black leading-tight tracking-wide drop-shadow-[0_0_15px_rgba(0,243,255,0.4)] text-transparent bg-clip-text bg-gradient-to-r from-cyber-primary via-white to-cyber-primary bg-[length:200%_auto] animate-shine"
               >
                 {{ currentQuestion.questionText }}
               </h1>
