@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SurveyService } from '../../services/survey.service';
 import { Question, AnswerRequest } from '../../models/survey.model';
+import { SoundService } from '../../services/sound.service';
 
 @Component({
   selector: 'app-survey',
@@ -317,7 +318,7 @@ import { Question, AnswerRequest } from '../../models/survey.model';
     `,
   ],
 })
-export class SurveyComponent implements OnInit {
+export class SurveyComponent implements OnInit, OnDestroy {
   questions: Question[] = [];
   currentIndex = 0;
   currentScore = 3;
@@ -334,9 +335,11 @@ export class SurveyComponent implements OnInit {
     private surveyService: SurveyService,
     private router: Router,
     private cdr: ChangeDetectorRef,
+    private soundService: SoundService,
   ) {}
 
   ngOnInit() {
+    this.soundService.playBgm('bgm.mp3', 0.2); // ปรับความดังได้ (0.0 - 1.0)
     this.surveyService.getQuestions().subscribe({
       next: (q) => {
         this.questions = q || [];
@@ -434,6 +437,7 @@ export class SurveyComponent implements OnInit {
   }
 
   nextQuestion() {
+    this.soundService.playSfx('click.mp3');
     if (this.isWarping) return;
 
     this.isWarping = true;
@@ -481,5 +485,9 @@ export class SurveyComponent implements OnInit {
   calculateProgress() {
     if (!this.questions.length) return 0;
     return ((this.currentIndex + 1) / this.questions.length) * 100;
+  }
+
+  ngOnDestroy() {
+    this.soundService.stopBgm();
   }
 }

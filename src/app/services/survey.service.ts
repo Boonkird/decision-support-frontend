@@ -17,9 +17,9 @@ export class SurveyService {
 
   // private apiUrl = 'http://127.0.0.1:8080/api';
   private apiUrl = environment.apiUrl;
-
   // ตัวแปรเก็บข้อมูลนักเรียนชั่วคราว (รอส่งตอนทำแบบสอบถามเสร็จ)
   private userProfile: StudentProfile | null = null;
+  private storedResult: any = null;
 
   constructor(private http: HttpClient) {}
 
@@ -72,5 +72,14 @@ export class SurveyService {
 
     // ยิงไปที่ http://localhost:8080/api/survey/submit
     return this.http.post<SurveyResult[]>(`${this.apiUrl}/survey/submit`, payload);
+  }
+
+  setResult(result: any) {
+    this.storedResult = result;
+  }
+
+  // ✅ ฟังก์ชันดึงข้อมูล (ต้องมี public)
+  getResult() {
+    return this.storedResult;
   }
 }

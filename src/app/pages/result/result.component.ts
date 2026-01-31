@@ -5,12 +5,15 @@ import {
   ViewChild,
   AfterViewInit,
   ChangeDetectorRef,
+  OnDestroy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router'; // ✅ เพิ่ม ActivatedRoute
 import { SurveyResult } from '../../models/survey.model';
 import Chart from 'chart.js/auto';
 import Swal from 'sweetalert2';
+import { SoundService } from '../../services/sound.service';
+import { SurveyService } from '../../services/survey.service'; // ✅ เพิ่ม SurveyService
 
 @Component({
   selector: 'app-result',
@@ -92,7 +95,7 @@ import Swal from 'sweetalert2';
                 {{ bestMatch.trackCode }}
               </h1>
               <h2 class="text-2xl md:text-3xl text-cyber-primary font-light mb-6">
-                {{ bestMatch.trackNameEn }}
+                {{ bestMatch.trackNameEn || getProgramName(bestMatch.trackCode) }}
               </h2>
               <p
                 class="text-gray-300 leading-relaxed font-light text-sm md:text-base border-l-2 border-cyber-secondary/50 pl-4"
@@ -182,19 +185,8 @@ import Swal from 'sweetalert2';
                 (click)="restart()"
                 class="py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-xl border border-white/10 transition-all text-xs uppercase tracking-widest font-bold flex justify-center items-center gap-2"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="2"
-                  stroke="currentColor"
-                  class="w-4 h-4"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"
-                  />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
                 </svg>
                 Re-Sync
               </button>
@@ -202,19 +194,8 @@ import Swal from 'sweetalert2';
                 (click)="share()"
                 class="py-4 bg-cyber-primary text-black rounded-xl hover:bg-white transition-all text-xs uppercase tracking-widest font-bold shadow-[0_0_20px_rgba(0,243,255,0.4)] flex justify-center items-center gap-2"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="2"
-                  stroke="currentColor"
-                  class="w-4 h-4"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"
-                  />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
                 </svg>
                 Share
               </button>
@@ -279,7 +260,7 @@ import Swal from 'sweetalert2';
     `,
   ],
 })
-export class ResultComponent implements OnInit, AfterViewInit {
+export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('radarChart') radarChartRef!: ElementRef;
 
   allResults: SurveyResult[] = [];
@@ -304,29 +285,80 @@ export class ResultComponent implements OnInit, AfterViewInit {
   constructor(
     private router: Router,
     private cdr: ChangeDetectorRef,
-  ) {
-    const nav = this.router.getCurrentNavigation();
-    if (nav?.extras.state) {
-      this.allResults = nav.extras.state['results'];
-    }
-  }
+    private soundService: SoundService,
+    private surveyService: SurveyService, // ✅ ต้องมีอันนี้
+    private route: ActivatedRoute         // ✅ ต้องมีอันนี้
+  ) {}
 
   ngOnInit() {
-    if (!this.allResults || this.allResults.length === 0) {
-      this.router.navigate(['/']);
-      return;
-    }
+    this.route.queryParams.subscribe(params => {
+      // --- กรณี 1: เปิดจากลิงก์แชร์ (มี track & score ใน URL) ---
+      if (params['track'] && params['score']) {
+        
+        // สร้างข้อมูลจำลองจาก URL
+        this.bestMatch = {
+          trackCode: params['track'],
+          percentage: parseFloat(params['score']),
+          trackNameEn: this.getProgramName(params['track']), // แปลง Code เป็นชื่อ
+          description: 'Friend\'s result shared with you.',
+          careers: [],
+          subjects: []
+        } as any;
 
-    this.allResults.sort((a, b) => b.percentage - a.percentage);
-    this.bestMatch = this.allResults[0];
-    this.otherResults = this.allResults.slice(1);
+        this.allResults = [this.bestMatch as any];
+        this.otherResults = []; // ลิงก์แชร์อาจจะไม่เห็นอันดับรอง (หรือจะ mock เพิ่มก็ได้)
 
-    this.startProcessingSimulation();
+        // เตรียมข้อมูลกราฟ (ถ้ามีส่งมาใน URL ก็ใช้ ถ้าไม่มีก็สร้างกราฟเปล่าหรือ default)
+        const chartData = params['chartData'] ? JSON.parse(params['chartData']) : [0, 0, 0, 0];
+        
+        // เริ่ม Simulation
+        this.startProcessingSimulation(chartData);
+
+      } 
+      // --- กรณี 2: เล่นเองจนจบ (ดึงจาก Service) ---
+      else {
+        // ✅ ดึงจาก Service แทน state ของ Router (ป้องกันปัญหา Refresh แล้วหาย)
+        const result = this.surveyService.getResult();
+        
+        if (!result || !result.recommendations || result.recommendations.length === 0) {
+          // ถ้าไม่มีข้อมูลเลย ให้กลับหน้าแรก
+          this.router.navigate(['/']);
+          return;
+        }
+
+        // จัดการข้อมูล
+        // หมายเหตุ: เช็คว่า result มาเป็น Array หรือ Object
+        this.allResults = Array.isArray(result) ? result : result.recommendations;
+        
+        this.allResults.sort((a, b) => b.percentage - a.percentage);
+        this.bestMatch = this.allResults[0];
+        this.otherResults = this.allResults.slice(1);
+
+        // เตรียมข้อมูลกราฟ
+        const chartData = [
+           this.getScoreByTrack(this.allResults, 'CS'),
+           this.getScoreByTrack(this.allResults, 'IT'),
+           this.getScoreByTrack(this.allResults, 'CDT'),
+           this.getScoreByTrack(this.allResults, 'CE')
+        ];
+
+        this.startProcessingSimulation(chartData);
+      }
+    });
   }
 
   ngAfterViewInit() {}
 
-  startProcessingSimulation() {
+  ngOnDestroy() {
+    // ป้องกันเสียงค้างเมื่อออกจากหน้า
+    this.soundService.stopProcessSound(); 
+  }
+
+  // ✅ เพิ่ม parameter data เข้ามาเพื่อใช้สร้างกราฟตอนจบ
+  startProcessingSimulation(chartData: number[]) {
+    // 🔊 1. เริ่มเล่นเสียง Process (Loop)
+    this.soundService.playProcessSound('process.mp3');
+
     let lineIndex = 0;
     const textInterval = setInterval(() => {
       this.randomCodeLine = this.codeSnippet[lineIndex % this.codeSnippet.length];
@@ -341,6 +373,7 @@ export class ResultComponent implements OnInit, AfterViewInit {
       this.cdr.detectChanges();
     }, 100);
 
+    // จำลองการโหลด 3 วินาที
     setTimeout(() => {
       clearInterval(textInterval);
       clearInterval(barInterval);
@@ -348,24 +381,32 @@ export class ResultComponent implements OnInit, AfterViewInit {
       this.cdr.detectChanges();
 
       setTimeout(() => {
+        // ⛔ 2. หยุดเสียง Process
+        this.soundService.stopProcessSound();
+        
+        // ✨ 3. เล่นเสียง Success (Level Up)
+        this.soundService.playSfx('success.mp3', 0.6);
+
         this.isProcessing = false;
         this.cdr.detectChanges();
-        setTimeout(() => this.initChart(), 100);
+        
+        // สร้างกราฟ
+        setTimeout(() => this.initChart(chartData), 100);
       }, 500);
     }, 3000);
   }
 
-  initChart() {
+  // ✅ รับ data เข้ามาวาด
+  initChart(dataPoints: number[]) {
     if (!this.radarChartRef) return;
 
-    const order = ['CS', 'IT', 'CDT', 'CE'];
-    const sortedResults = order.map(
-      (code) =>
-        this.allResults.find((r) => r.trackCode === code) || { trackCode: code, percentage: 0 },
-    );
+    // ล้างกราฟเก่าถ้ามี
+    if (this.chartInstance) {
+      this.chartInstance.destroy();
+    }
 
-    const labels = sortedResults.map((r) => r.trackCode);
-    const data = sortedResults.map((r) => r.percentage);
+    const labels = ['CS', 'IT', 'CDT', 'CE'];
+    // const data = dataPoints; // ใช้ข้อมูลจริงที่ส่งมา
 
     this.chartInstance = new Chart(this.radarChartRef.nativeElement, {
       type: 'radar',
@@ -374,7 +415,7 @@ export class ResultComponent implements OnInit, AfterViewInit {
         datasets: [
           {
             label: 'Aptitude Score',
-            data: data,
+            data: dataPoints,
             backgroundColor: 'rgba(0, 243, 255, 0.2)',
             borderColor: '#00f3ff',
             pointBackgroundColor: '#fff',
@@ -410,37 +451,60 @@ export class ResultComponent implements OnInit, AfterViewInit {
   }
 
   share() {
-    // 1. ตรวจสอบว่ามีข้อมูลผลลัพธ์หรือไม่
     if (!this.bestMatch) return;
 
-    // 2. เตรียมข้อมูลที่จะแชร์
+    // 1. สร้าง Base URL
+    const baseUrl = window.location.origin + this.router.createUrlTree(['/result']).toString();
+    
+    // 2. ดึงข้อมูลกราฟออกมาเป็น String (ถ้ามี)
+    const chartDataStr = this.chartInstance 
+      ? JSON.stringify(this.chartInstance.data.datasets[0].data) 
+      : '[0,0,0,0]';
+
+    // 3. สร้าง Query Params
+    const queryParams = `?track=${this.bestMatch.trackCode}&score=${this.bestMatch.percentage.toFixed(1)}&chartData=${chartDataStr}`;
+    
+    // 4. รวมร่าง URL
+    const shareUrl = baseUrl + queryParams;
+
     const shareData = {
       title: 'My Tech DNA Result',
-      text: `🚀 ผลลัพธ์ของฉันคือ: ${this.bestMatch.trackCode} (${this.bestMatch.percentage.toFixed(1)}%) \nมาค้นหาตัวตนสายคอมฯ ของคุณกันเถอะ!`,
-      url: window.location.href // หรือใส่ URL เว็บจริงของคุณ เช่น 'https://your-project.vercel.app'
+      text: `🚀 ผลลัพธ์ของฉันคือ: ${this.bestMatch.trackCode} (${this.bestMatch.percentage.toFixed(1)}%)`,
+      url: shareUrl
     };
 
-    // 3. ตรวจสอบว่า Browser รองรับฟีเจอร์แชร์ไหม (ส่วนใหญ่บนมือถือรองรับ)
     if (navigator.share) {
-      navigator.share(shareData)
-        .then(() => console.log('Shared successfully'))
-        .catch((err) => console.log('Error sharing:', err));
-    } 
-    // 4. กรณีใช้งานบน PC หรือ Browser ที่ไม่รองรับ -> ให้ Copy ลง Clipboard แทน
-    else {
+      navigator.share(shareData).catch((err) => console.log('Error sharing:', err));
+    } else {
       const clipboardContent = `${shareData.text}\n${shareData.url}`;
       navigator.clipboard.writeText(clipboardContent).then(() => {
-        // แจ้งเตือนว่า Copy แล้ว (ใช้ Swal ที่คุณมีอยู่แล้ว)
         Swal.fire({
           icon: 'success',
           title: 'คัดลอกลิงก์เรียบร้อย!',
-          text: 'นำไปวางเพื่อแชร์ต่อได้เลย',
+          text: 'ส่งให้เพื่อนดูได้เลย',
           timer: 1500,
           showConfirmButton: false,
-          background: '#1a1a1a', // ปรับสีให้เข้ากับ Theme ดำของคุณ
+          background: '#1a1a1a',
           color: '#ffffff'
         });
       });
     }
+  }
+
+  // --- Helper Functions ---
+
+  getProgramName(code: string): string {
+    switch(code) {
+      case 'CS': return 'Computer Science';
+      case 'IT': return 'Information Technology';
+      case 'CDT': return 'Computer & Digital Tech';
+      case 'CE': return 'Computer Education';
+      default: return code;
+    }
+  }
+
+  getScoreByTrack(results: any[], track: string): number {
+    const found = results.find((r: any) => r.trackCode === track);
+    return found ? found.percentage : 0;
   }
 }
