@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { SoundService } from '../../services/sound.service';
 
 @Component({
   selector: 'app-instruction',
@@ -113,7 +114,7 @@ import { Router } from '@angular/router';
 
         <div class="text-center">
           <button
-            (click)="next()"
+            (click)="nextPage()"
             class="group relative inline-flex items-center gap-3 px-12 py-4 bg-white text-black font-bold text-sm uppercase tracking-[0.2em] rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]"
           >
             <span>Acknowledge & Proceed</span>
@@ -187,10 +188,13 @@ import { Router } from '@angular/router';
     `,
   ],
 })
-export class InstructionComponent {
-  constructor(private router: Router) {}
 
-  next() {
+export class InstructionComponent {
+  
+  constructor(private router: Router, private soundService: SoundService) {}
+
+  nextPage() {
+    this.soundService.playSfx('click.mp3');
     this.router.navigate(['/student-info']);
   }
 }

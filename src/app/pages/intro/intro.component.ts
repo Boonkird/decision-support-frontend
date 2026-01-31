@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { SoundService } from '../../services/sound.service';
 
 @Component({
   selector: 'app-intro',
@@ -187,10 +188,16 @@ import { CommonModule } from '@angular/common';
     `,
   ],
 })
-export class IntroComponent {
-  constructor(private router: Router) {}
+export class IntroComponent implements OnInit{
+  constructor(private router: Router, private soundService: SoundService) {}
+
+  ngOnInit() {
+    this.soundService.playBgm('bgm.mp3', 0.3);
+  }
 
   start() {
+    this.soundService.playSfx('click.mp3');
+    this.soundService.playBgm('bgm.mp3', 0.3);
     this.router.navigate(['/instruction']);
   }
 

@@ -470,17 +470,25 @@ export class SurveyComponent implements OnInit, OnDestroy {
   }
 
   finish() {
-    this.loading = true;
-    this.surveyService.submitSurvey(this.answers).subscribe({
-      next: (results) => this.router.navigate(['/result'], { state: { results } }),
-      error: () => {
-        this.loading = false;
-        alert('Error');
-        this.isWarping = false;
-        this.animationClass = '';
-      },
-    });
-  }
+  this.loading = true;
+  this.surveyService.submitSurvey(this.answers).subscribe({
+    next: (results) => {
+      console.log('✅ ได้รับผลลัพธ์จาก Server:', results); // เช็ค log
+      
+      // ⭐⭐ บรรทัดนี้สำคัญที่สุด! ต้องฝากข้อมูลไว้ก่อนเปลี่ยนหน้า ⭐⭐
+      this.surveyService.setResult(results);
+
+      // แล้วค่อยไปหน้า Result
+      this.router.navigate(['/result']);
+    },
+    error: (err) => {
+      console.error('❌ ส่งข้อมูลไม่ผ่าน:', err);
+      this.loading = false;
+      alert('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
+      this.isWarping = false;
+    }
+  });
+}
 
   calculateProgress() {
     if (!this.questions.length) return 0;
