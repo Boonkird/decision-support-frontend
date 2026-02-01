@@ -8,12 +8,12 @@ import {
   OnDestroy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute } from '@angular/router'; // ✅ เพิ่ม ActivatedRoute
+import { Router, ActivatedRoute } from '@angular/router';
 import { SurveyResult } from '../../models/survey.model';
 import Chart from 'chart.js/auto';
 import Swal from 'sweetalert2';
 import { SoundService } from '../../services/sound.service';
-import { SurveyService } from '../../services/survey.service'; // ✅ เพิ่ม SurveyService
+import { SurveyService } from '../../services/survey.service';
 
 @Component({
   selector: 'app-result',
@@ -286,8 +286,8 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private cdr: ChangeDetectorRef,
     private soundService: SoundService,
-    private surveyService: SurveyService, // ✅ ต้องมีอันนี้
-    private route: ActivatedRoute         // ✅ ต้องมีอันนี้
+    private surveyService: SurveyService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
@@ -317,29 +317,37 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
       } 
       // --- กรณี 2: เล่นเองจนจบ (ดึงจาก Service) ---
       else {
-        // ✅ ดึงจาก Service แทน state ของ Router (ป้องกันปัญหา Refresh แล้วหาย)
         const result = this.surveyService.getResult();
         
-        if (!result || !result.recommendations || result.recommendations.length === 0) {
-          // ถ้าไม่มีข้อมูลเลย ให้กลับหน้าแรก
+        // 1. เช็คแค่ว่ามีข้อมูลหรือไม่ (ยังไม่เช็คไส้ใน)
+        if (!result) {
+          console.warn('❌ ไม่พบข้อมูลใน Service (User อาจจะ Refresh หน้าจอ)');
           this.router.navigate(['/']);
           return;
         }
 
-        // จัดการข้อมูล
-        // หมายเหตุ: เช็คว่า result มาเป็น Array หรือ Object
-        this.allResults = Array.isArray(result) ? result : result.recommendations;
-        
-        this.allResults.sort((a, b) => b.percentage - a.percentage);
+        // 2. แปลงข้อมูลให้เป็น Array ที่ถูกต้องก่อน
+        // ถ้ามาเป็น Array อยู่แล้วก็ใช้เลย, ถ้ามาเป็น Object ให้ดึง .recommendations
+        this.allResults = Array.isArray(result) ? result : (result.recommendations || []);
+
+        // 3. ค่อยเช็คว่า Array ว่างไหม
+        if (this.allResults.length === 0) {
+          console.warn('❌ ข้อมูลผลลัพธ์ว่างเปล่า');
+          this.router.navigate(['/']);
+          return;
+        }
+
+        // --- ส่วนการแสดงผล (ทำงานต่อได้แล้ว) ---
+        this.allResults.sort((a: any, b: any) => b.percentage - a.percentage);
         this.bestMatch = this.allResults[0];
         this.otherResults = this.allResults.slice(1);
 
         // เตรียมข้อมูลกราฟ
         const chartData = [
-           this.getScoreByTrack(this.allResults, 'CS'),
-           this.getScoreByTrack(this.allResults, 'IT'),
-           this.getScoreByTrack(this.allResults, 'CDT'),
-           this.getScoreByTrack(this.allResults, 'CE')
+          this.getScoreByTrack(this.allResults, 'CS'),
+          this.getScoreByTrack(this.allResults, 'IT'),
+          this.getScoreByTrack(this.allResults, 'CDT'),
+          this.getScoreByTrack(this.allResults, 'CE')
         ];
 
         this.startProcessingSimulation(chartData);
@@ -354,7 +362,7 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
     this.soundService.stopProcessSound(); 
   }
 
-  // ✅ เพิ่ม parameter data เข้ามาเพื่อใช้สร้างกราฟตอนจบ
+  // เพิ่ม parameter data เข้ามาเพื่อใช้สร้างกราฟตอนจบ
   startProcessingSimulation(chartData: number[]) {
     // 🔊 1. เริ่มเล่นเสียง Process (Loop)
     this.soundService.playProcessSound('process.mp3');
@@ -396,7 +404,7 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 3000);
   }
 
-  // ✅ รับ data เข้ามาวาด
+  //  รับ data เข้ามาวาด
   initChart(dataPoints: number[]) {
     if (!this.radarChartRef) return;
 
