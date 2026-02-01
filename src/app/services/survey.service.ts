@@ -29,8 +29,12 @@ export class SurveyService {
   }
 
   // ค้นหาโรงเรียน
-  searchSchools(query: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/master/schools?query=${query}`);
+  searchSchools(query: string, province: string | null = null): Observable<any[]> {
+    let url = `${this.apiUrl}/master/schools?query=${query}`;
+    if (province) {
+      url += `&province=${encodeURIComponent(province)}`;
+    }
+    return this.http.get<any[]>(url);
   }
 
   // --- 1. จัดการ Profile (เก็บไว้ใน Memory ก่อน) ---
