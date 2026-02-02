@@ -81,7 +81,7 @@ import { SurveyService } from '../../services/survey.service';
           <div class="lg:col-span-7">
             
             <div class="grid grid-cols-1 gap-6" 
-                 [ngClass]="{'md:grid-cols-2': topMatches.length > 1}">
+                [ngClass]="{'md:grid-cols-2': topMatches.length > 1}">
 
               <div *ngFor="let match of topMatches"
                 class="bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-3xl relative overflow-hidden group shadow-[0_0_50px_rgba(0,243,255,0.1)] hover:border-cyber-primary/50 transition-all duration-300"
@@ -111,8 +111,7 @@ import { SurveyService } from '../../services/survey.service';
                   </h2>
 
                   <p
-                    class="text-gray-300 leading-relaxed font-light text-sm border-l-2 border-cyber-secondary/50 pl-4 mb-6"
-                    [class.hidden]="topMatches.length > 2" 
+                    class="text-gray-300 leading-relaxed font-light text-sm border-l-2 border-cyber-secondary/50 pl-4 mb-6 whitespace-pre-wrap"
                   >
                     {{ match.description }}
                   </p>
