@@ -470,6 +470,9 @@ export class StudentInfoComponent implements OnInit {
     if (!this.isOverProvinceList) this.showProvinceList = false;
   }
   selectProvince(name: string) {
+    if (this.data.province !== name) {
+      this.data.school = '';
+    }
     this.data.province = name;
     this.showProvinceList = false;
   }
@@ -479,7 +482,7 @@ export class StudentInfoComponent implements OnInit {
     const query = event.target.value;
     this.showSchoolList = true;
     if (query.length >= 2) {
-      this.surveyService.searchSchools(query).subscribe({
+      this.surveyService.searchSchools(query, this.data.province).subscribe({
         next: (res) => (this.filteredSchools = res.slice(0, 20)),
         error: () => {
           /* No mock fallback */

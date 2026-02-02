@@ -29,7 +29,7 @@ export class SurveyService {
   }
 
   // ค้นหาโรงเรียน
-  searchSchools(query: string, province: string | null = null): Observable<any[]> {
+  searchSchools(query: string, province?: string | null): Observable<any[]> {
     let url = `${this.apiUrl}/master/schools?query=${query}`;
     if (province) {
       url += `&province=${encodeURIComponent(province)}`;
