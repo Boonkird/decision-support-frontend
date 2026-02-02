@@ -317,36 +317,35 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
-      // --- กรณี 1: เปิดจากลิงก์แชร์ (มี track & score ใน URL) ---
+      // --- กรณี 1: เปิดจากลิงก์แชร์ (Mock Data) ---
       if (params['track'] && params['score']) {
         
-        // สร้างข้อมูลจำลองจาก URL
         this.bestMatch = {
           trackCode: params['track'],
           percentage: parseFloat(params['score']),
-          trackNameEn: this.getProgramName(params['track']), // แปลง Code เป็นชื่อ
+          trackNameEn: this.getProgramName(params['track']),
           description: 'Friend\'s result shared with you.',
           careers: [],
           subjects: [],
-          topMatches: [] // mock empty for shared link
-
+          topMatches: [] 
         } as any;
 
-        this.topMatches = [this.bestMatch as any]; // ✅ ให้ Top เป็นคนนี้คนเดียว
+        // ✅ สำคัญ: ต้องใส่ข้อมูลให้ topMatches ด้วย (ไม่งั้นการ์ดว่าง)
+        this.topMatches = [this.bestMatch as any]; 
+        
         this.allResults = [this.bestMatch as any];
         this.otherResults = [];
 
-        // เตรียมข้อมูลกราฟ
         const chartData = params['chartData'] ? JSON.parse(params['chartData']) : [0, 0, 0, 0];
         this.startProcessingSimulation(chartData);
 
       } 
-      // --- กรณี 2: เล่นเองจนจบ (ดึงจาก Service) ---
+      // --- กรณี 2: เล่นเองจนจบ (Service Data) ---
       else {
         const result = this.surveyService.getResult();
         
         if (!result) {
-          console.warn('❌ ไม่พบข้อมูลใน Service (User อาจจะ Refresh หน้าจอ)');
+          console.warn('❌ ไม่พบข้อมูล (User อาจ Refresh)');
           this.router.navigate(['/']);
           return;
         }
@@ -354,22 +353,22 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
         this.allResults = Array.isArray(result) ? result : (result.recommendations || []);
 
         if (this.allResults.length === 0) {
-          console.warn('❌ ข้อมูลผลลัพธ์ว่างเปล่า');
           this.router.navigate(['/']);
           return;
         }
 
-        // --- Logic หลัก ---
+        // เรียงคะแนนจากมากไปน้อย
         this.allResults.sort((a: any, b: any) => b.percentage - a.percentage);
         const maxScore = this.allResults[0].percentage;
 
-        // ✅ 1. หาคนคะแนนสูงสุด (อาจมีหลายคน)
+        // ✅ สำคัญ: Logic หาคนชนะ (อาจมีหลายคน)
+        // ต้องมีบรรทัดนี้ ข้อมูลถึงจะโชว์ในการ์ดครับ!
         this.topMatches = this.allResults.filter((r: any) => Math.abs(r.percentage - maxScore) < 0.01);
 
-        // ✅ 2. กำหนด bestMatch (ใช้คนแรกของ topMatches)
+        // กำหนด bestMatch (เอาคนแรกของกลุ่มชนะ)
         this.bestMatch = this.topMatches[0];
 
-        // 3. เอาคนที่เหลือไปใส่ใน otherResults
+        // คนที่เหลือ
         this.otherResults = this.allResults.filter((r: any) => r.percentage < maxScore - 0.01);
 
         // เตรียมข้อมูลกราฟ
