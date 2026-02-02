@@ -114,10 +114,7 @@ import { SurveyService } from '../../services/survey.service';
                     class="text-gray-300 leading-relaxed font-light text-sm border-l-2 border-cyber-secondary/50 pl-4 mb-6"
                     [class.hidden]="topMatches.length > 2" 
                   >
-                    {{
-                      match.description ||
-                        'Suitable for those who love creating, logical thinking, and innovating the future.'
-                    }}
+                    {{ match.description }}
                   </p>
     
                   <div class="mt-auto flex items-center gap-4">
