@@ -78,75 +78,87 @@ import { SurveyService } from '../../services/survey.service';
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
           
-          <div class="lg:col-span-7 flex flex-col gap-6">
+          <div class="lg:col-span-7">
             
-            <div *ngFor="let match of topMatches"
-              class="bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden group shadow-[0_0_50px_rgba(0,243,255,0.1)]"
-            >
-              <div
-                class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyber-primary to-transparent opacity-50"
-              ></div>
-  
-              <div class="relative z-10 flex flex-col h-full justify-center">
-                <h3 class="text-gray-400 text-sm uppercase tracking-[0.2em] mb-2">
-                  Recommended Class
-                </h3>
-                
-                <h1
-                  class="text-6xl md:text-8xl font-black text-white mb-4 tracking-tighter drop-shadow-[0_0_15px_rgba(0,243,255,0.5)] glitch-hover"
-                  [attr.data-text]="match.trackCode"
-                >
-                  {{ match.trackCode }}
-                </h1>
-                <h2 class="text-2xl md:text-3xl text-cyber-primary font-light mb-6">
-                  {{ match.trackNameEn || getProgramName(match.trackCode) }}
-                </h2>
-                <p
-                  class="text-gray-300 leading-relaxed font-light text-sm md:text-base border-l-2 border-cyber-secondary/50 pl-4"
-                >
-                  {{
-                    match.description ||
-                      'Suitable for those who love creating, logical thinking, and innovating the future.'
-                  }}
-                </p>
-  
-                <div class="mt-8 flex items-center gap-4">
-                  <div class="relative w-16 h-16">
-                    <svg class="w-full h-full -rotate-90">
-                      <circle
-                        cx="50%"
-                        cy="50%"
-                        r="45%"
-                        fill="none"
-                        stroke="#333"
-                        stroke-width="4"
-                      ></circle>
-                      <circle
-                        cx="50%"
-                        cy="50%"
-                        r="45%"
-                        fill="none"
-                        stroke="#00f3ff"
-                        stroke-width="4"
-                        stroke-dasharray="100"
-                        [attr.stroke-dashoffset]="100 - match.percentage"
-                        class="drop-shadow-[0_0_5px_#00f3ff]"
-                      ></circle>
-                    </svg>
-                    <span class="absolute inset-0 flex items-center justify-center text-xs font-bold"
-                      >{{ match.percentage | number: '1.0-0' }}%</span
-                    >
-                  </div>
-                  <div>
-                    <div class="text-lg font-bold text-white">Excellent Match</div>
-                    <div class="text-xs text-gray-400">Based on your aptitude</div>
+            <div class="grid grid-cols-1 gap-6" 
+                 [ngClass]="{'md:grid-cols-2': topMatches.length > 1}">
+
+              <div *ngFor="let match of topMatches"
+                class="bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-3xl relative overflow-hidden group shadow-[0_0_50px_rgba(0,243,255,0.1)] hover:border-cyber-primary/50 transition-all duration-300"
+                [ngClass]="{'p-8 md:p-12': topMatches.length === 1, 'p-6': topMatches.length > 1}"
+              >
+                <div
+                  class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyber-primary to-transparent opacity-50"
+                ></div>
+    
+                <div class="relative z-10 flex flex-col h-full justify-center">
+                  <h3 class="text-gray-400 text-xs uppercase tracking-[0.2em] mb-2">
+                    Recommended
+                  </h3>
+                  
+                  <h1
+                    class="font-black text-white mb-2 tracking-tighter drop-shadow-[0_0_15px_rgba(0,243,255,0.5)] glitch-hover break-words"
+                    [ngClass]="{'text-6xl md:text-8xl': topMatches.length === 1, 'text-4xl md:text-5xl': topMatches.length > 1}"
+                    [attr.data-text]="match.trackCode"
+                  >
+                    {{ match.trackCode }}
+                  </h1>
+                  
+                  <h2 class="text-cyber-primary font-light mb-4 leading-tight"
+                      [ngClass]="{'text-2xl md:text-3xl': topMatches.length === 1, 'text-lg': topMatches.length > 1}"
+                  >
+                    {{ match.trackNameEn || getProgramName(match.trackCode) }}
+                  </h2>
+
+                  <p
+                    class="text-gray-300 leading-relaxed font-light text-sm border-l-2 border-cyber-secondary/50 pl-4 mb-6"
+                    [class.hidden]="topMatches.length > 2" 
+                  >
+                    {{
+                      match.description ||
+                        'Suitable for those who love creating, logical thinking, and innovating the future.'
+                    }}
+                  </p>
+    
+                  <div class="mt-auto flex items-center gap-4">
+                    <div class="relative" [ngClass]="{'w-16 h-16': topMatches.length === 1, 'w-12 h-12': topMatches.length > 1}">
+                      <svg class="w-full h-full -rotate-90">
+                        <circle
+                          cx="50%"
+                          cy="50%"
+                          r="45%"
+                          fill="none"
+                          stroke="#333"
+                          stroke-width="4"
+                        ></circle>
+                        <circle
+                          cx="50%"
+                          cy="50%"
+                          r="45%"
+                          fill="none"
+                          stroke="#00f3ff"
+                          stroke-width="4"
+                          stroke-dasharray="100"
+                          [attr.stroke-dashoffset]="100 - match.percentage"
+                          class="drop-shadow-[0_0_5px_#00f3ff]"
+                        ></circle>
+                      </svg>
+                      <span class="absolute inset-0 flex items-center justify-center font-bold"
+                            [ngClass]="{'text-xs': topMatches.length > 1, 'text-sm': topMatches.length === 1}"
+                        >{{ match.percentage | number: '1.0-0' }}%</span
+                      >
+                    </div>
+                    <div>
+                      <div class="font-bold text-white" [ngClass]="{'text-lg': topMatches.length === 1, 'text-sm': topMatches.length > 1}">Excellent Match</div>
+                      <div class="text-xs text-gray-400">Aptitude Score</div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div *ngIf="topMatches.length > 1" class="text-center text-cyber-secondary animate-pulse mt-2">
-              🎉 Wow! You have multiple top matches!
+            </div>
+            <div *ngIf="topMatches.length > 1" class="text-center text-cyber-secondary animate-pulse mt-2 text-sm bg-black/20 p-2 rounded-lg border border-white/5">
+              🎉 Multiverse Talent! You are equally suited for {{ topMatches.length }} tracks.
             </div>
 
           </div>
