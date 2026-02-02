@@ -77,68 +77,78 @@ import { SurveyService } from '../../services/survey.service';
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
-          <div
-            class="lg:col-span-7 bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden group shadow-[0_0_50px_rgba(0,243,255,0.1)]"
-          >
-            <div
-              class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyber-primary to-transparent opacity-50"
-            ></div>
-
-            <div class="relative z-10 flex flex-col h-full justify-center">
-              <h3 class="text-gray-400 text-sm uppercase tracking-[0.2em] mb-2">
-                Recommended Class
-              </h3>
-              <h1
-                class="text-6xl md:text-8xl font-black text-white mb-4 tracking-tighter drop-shadow-[0_0_15px_rgba(0,243,255,0.5)] glitch-hover"
-                [attr.data-text]="bestMatch.trackCode"
-              >
-                {{ bestMatch.trackCode }}
-              </h1>
-              <h2 class="text-2xl md:text-3xl text-cyber-primary font-light mb-6">
-                {{ bestMatch.trackNameEn || getProgramName(bestMatch.trackCode) }}
-              </h2>
-              <p
-                class="text-gray-300 leading-relaxed font-light text-sm md:text-base border-l-2 border-cyber-secondary/50 pl-4"
-              >
-                {{
-                  bestMatch.description ||
-                    'Suitable for those who love creating, logical thinking, and innovating the future.'
-                }}
-              </p>
-
-              <div class="mt-8 flex items-center gap-4">
-                <div class="relative w-16 h-16">
-                  <svg class="w-full h-full -rotate-90">
-                    <circle
-                      cx="50%"
-                      cy="50%"
-                      r="45%"
-                      fill="none"
-                      stroke="#333"
-                      stroke-width="4"
-                    ></circle>
-                    <circle
-                      cx="50%"
-                      cy="50%"
-                      r="45%"
-                      fill="none"
-                      stroke="#00f3ff"
-                      stroke-width="4"
-                      stroke-dasharray="100"
-                      [attr.stroke-dashoffset]="100 - bestMatch.percentage"
-                      class="drop-shadow-[0_0_5px_#00f3ff]"
-                    ></circle>
-                  </svg>
-                  <span class="absolute inset-0 flex items-center justify-center text-xs font-bold"
-                    >{{ bestMatch.percentage | number: '1.0-0' }}%</span
-                  >
-                </div>
-                <div>
-                  <div class="text-lg font-bold text-white">Excellent Match</div>
-                  <div class="text-xs text-gray-400">Based on your aptitude</div>
+          
+          <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <div *ngFor="let match of topMatches"
+              class="bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden group shadow-[0_0_50px_rgba(0,243,255,0.1)]"
+            >
+              <div
+                class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyber-primary to-transparent opacity-50"
+              ></div>
+  
+              <div class="relative z-10 flex flex-col h-full justify-center">
+                <h3 class="text-gray-400 text-sm uppercase tracking-[0.2em] mb-2">
+                  Recommended Class
+                </h3>
+                
+                <h1
+                  class="text-6xl md:text-8xl font-black text-white mb-4 tracking-tighter drop-shadow-[0_0_15px_rgba(0,243,255,0.5)] glitch-hover"
+                  [attr.data-text]="match.trackCode"
+                >
+                  {{ match.trackCode }}
+                </h1>
+                <h2 class="text-2xl md:text-3xl text-cyber-primary font-light mb-6">
+                  {{ match.trackNameEn || getProgramName(match.trackCode) }}
+                </h2>
+                <p
+                  class="text-gray-300 leading-relaxed font-light text-sm md:text-base border-l-2 border-cyber-secondary/50 pl-4"
+                >
+                  {{
+                    match.description ||
+                      'Suitable for those who love creating, logical thinking, and innovating the future.'
+                  }}
+                </p>
+  
+                <div class="mt-8 flex items-center gap-4">
+                  <div class="relative w-16 h-16">
+                    <svg class="w-full h-full -rotate-90">
+                      <circle
+                        cx="50%"
+                        cy="50%"
+                        r="45%"
+                        fill="none"
+                        stroke="#333"
+                        stroke-width="4"
+                      ></circle>
+                      <circle
+                        cx="50%"
+                        cy="50%"
+                        r="45%"
+                        fill="none"
+                        stroke="#00f3ff"
+                        stroke-width="4"
+                        stroke-dasharray="100"
+                        [attr.stroke-dashoffset]="100 - match.percentage"
+                        class="drop-shadow-[0_0_5px_#00f3ff]"
+                      ></circle>
+                    </svg>
+                    <span class="absolute inset-0 flex items-center justify-center text-xs font-bold"
+                      >{{ match.percentage | number: '1.0-0' }}%</span
+                    >
+                  </div>
+                  <div>
+                    <div class="text-lg font-bold text-white">Excellent Match</div>
+                    <div class="text-xs text-gray-400">Based on your aptitude</div>
+                  </div>
                 </div>
               </div>
             </div>
+
+            <div *ngIf="topMatches.length > 1" class="text-center text-cyber-secondary animate-pulse mt-2">
+              🎉 Wow! You have multiple top matches!
+            </div>
+
           </div>
 
           <div class="lg:col-span-5 flex flex-col gap-6">
@@ -266,6 +276,9 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
   allResults: SurveyResult[] = [];
   bestMatch: SurveyResult | undefined;
   otherResults: SurveyResult[] = [];
+  
+  // ✅ เพิ่มตัวแปรนี้ครับ
+  topMatches: SurveyResult[] = []; 
 
   isProcessing = true;
   processingProgress = [0, 0, 0, 0];
@@ -302,16 +315,17 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
           trackNameEn: this.getProgramName(params['track']), // แปลง Code เป็นชื่อ
           description: 'Friend\'s result shared with you.',
           careers: [],
-          subjects: []
+          subjects: [],
+          topMatches: [] // mock empty for shared link
+
         } as any;
 
+        this.topMatches = [this.bestMatch as any]; // ✅ ให้ Top เป็นคนนี้คนเดียว
         this.allResults = [this.bestMatch as any];
-        this.otherResults = []; // ลิงก์แชร์อาจจะไม่เห็นอันดับรอง (หรือจะ mock เพิ่มก็ได้)
+        this.otherResults = [];
 
-        // เตรียมข้อมูลกราฟ (ถ้ามีส่งมาใน URL ก็ใช้ ถ้าไม่มีก็สร้างกราฟเปล่าหรือ default)
+        // เตรียมข้อมูลกราฟ
         const chartData = params['chartData'] ? JSON.parse(params['chartData']) : [0, 0, 0, 0];
-        
-        // เริ่ม Simulation
         this.startProcessingSimulation(chartData);
 
       } 
@@ -319,28 +333,32 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
       else {
         const result = this.surveyService.getResult();
         
-        // 1. เช็คแค่ว่ามีข้อมูลหรือไม่ (ยังไม่เช็คไส้ใน)
         if (!result) {
           console.warn('❌ ไม่พบข้อมูลใน Service (User อาจจะ Refresh หน้าจอ)');
           this.router.navigate(['/']);
           return;
         }
 
-        // 2. แปลงข้อมูลให้เป็น Array ที่ถูกต้องก่อน
-        // ถ้ามาเป็น Array อยู่แล้วก็ใช้เลย, ถ้ามาเป็น Object ให้ดึง .recommendations
         this.allResults = Array.isArray(result) ? result : (result.recommendations || []);
 
-        // 3. ค่อยเช็คว่า Array ว่างไหม
         if (this.allResults.length === 0) {
           console.warn('❌ ข้อมูลผลลัพธ์ว่างเปล่า');
           this.router.navigate(['/']);
           return;
         }
 
-        // --- ส่วนการแสดงผล (ทำงานต่อได้แล้ว) ---
+        // --- Logic หลัก ---
         this.allResults.sort((a: any, b: any) => b.percentage - a.percentage);
-        this.bestMatch = this.allResults[0];
-        this.otherResults = this.allResults.slice(1);
+        const maxScore = this.allResults[0].percentage;
+
+        // ✅ 1. หาคนคะแนนสูงสุด (อาจมีหลายคน)
+        this.topMatches = this.allResults.filter((r: any) => Math.abs(r.percentage - maxScore) < 0.01);
+
+        // ✅ 2. กำหนด bestMatch (ใช้คนแรกของ topMatches)
+        this.bestMatch = this.topMatches[0];
+
+        // 3. เอาคนที่เหลือไปใส่ใน otherResults
+        this.otherResults = this.allResults.filter((r: any) => r.percentage < maxScore - 0.01);
 
         // เตรียมข้อมูลกราฟ
         const chartData = [
@@ -358,13 +376,10 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit() {}
 
   ngOnDestroy() {
-    // ป้องกันเสียงค้างเมื่อออกจากหน้า
     this.soundService.stopProcessSound(); 
   }
 
-  // เพิ่ม parameter data เข้ามาเพื่อใช้สร้างกราฟตอนจบ
   startProcessingSimulation(chartData: number[]) {
-    // 🔊 1. เริ่มเล่นเสียง Process (Loop)
     this.soundService.playProcessSound('process.mp3');
 
     let lineIndex = 0;
@@ -381,7 +396,6 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
       this.cdr.detectChanges();
     }, 100);
 
-    // จำลองการโหลด 3 วินาที
     setTimeout(() => {
       clearInterval(textInterval);
       clearInterval(barInterval);
@@ -389,32 +403,23 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
       this.cdr.detectChanges();
 
       setTimeout(() => {
-        // ⛔ 2. หยุดเสียง Process
         this.soundService.stopProcessSound();
-        
-        // ✨ 3. เล่นเสียง Success (Level Up)
         this.soundService.playSfx('success.mp3', 0.6);
-
         this.isProcessing = false;
         this.cdr.detectChanges();
-        
-        // สร้างกราฟ
         setTimeout(() => this.initChart(chartData), 100);
       }, 500);
     }, 3000);
   }
 
-  //  รับ data เข้ามาวาด
   initChart(dataPoints: number[]) {
     if (!this.radarChartRef) return;
 
-    // ล้างกราฟเก่าถ้ามี
     if (this.chartInstance) {
       this.chartInstance.destroy();
     }
 
     const labels = ['CS', 'IT', 'CDT', 'CE'];
-    // const data = dataPoints; // ใช้ข้อมูลจริงที่ส่งมา
 
     this.chartInstance = new Chart(this.radarChartRef.nativeElement, {
       type: 'radar',
@@ -461,18 +466,12 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
   share() {
     if (!this.bestMatch) return;
 
-    // 1. สร้าง Base URL
     const baseUrl = window.location.origin + this.router.createUrlTree(['/result']).toString();
-    
-    // 2. ดึงข้อมูลกราฟออกมาเป็น String (ถ้ามี)
     const chartDataStr = this.chartInstance 
       ? JSON.stringify(this.chartInstance.data.datasets[0].data) 
       : '[0,0,0,0]';
 
-    // 3. สร้าง Query Params
     const queryParams = `?track=${this.bestMatch.trackCode}&score=${this.bestMatch.percentage.toFixed(1)}&chartData=${chartDataStr}`;
-    
-    // 4. รวมร่าง URL
     const shareUrl = baseUrl + queryParams;
 
     const shareData = {
@@ -498,8 +497,6 @@ export class ResultComponent implements OnInit, AfterViewInit, OnDestroy {
       });
     }
   }
-
-  // --- Helper Functions ---
 
   getProgramName(code: string): string {
     switch(code) {
